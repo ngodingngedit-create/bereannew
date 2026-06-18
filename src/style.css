@@ -1,0 +1,105 @@
+:root {
+  --color-bg-light: #FFFFFF;
+  --color-bg-cream: #FFFFFF;
+  /* Pure white background */
+  --color-bg-shop: #FFFFFF;
+  /* Pure white background */
+  --color-mocca-dark: #2F4E3E;
+  /* Beautiful uniform dark green */
+  --color-mocca-muted: #82A291;
+  /* Muted green for subtext and meta labels */
+  --color-mocca-border: #E1EBE5;
+  /* Warm grey/green border */
+  --color-mocca-active: #2F4E3E;
+
+  --font-heading: 'Poppins', sans-serif;
+  --font-body: 'Poppins', sans-serif;
+
+  --transition-smooth: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* ======== Theme: Vintage Sepia ======== */
+body[data-theme="sepia"] {
+  --color-bg-light: #F2F7F4;
+  --color-bg-cream: #E9F1EC;
+  --color-bg-shop: #E9F1EC;
+  --color-mocca-dark: #375948;
+  --color-mocca-muted: #6B8C7A;
+  --color-mocca-border: #C8DCD1;
+  --color-mocca-active: #375948;
+}
+
+/* ======== Theme: Cozy Dark Cocoa ======== */
+body[data-theme="cocoa"] {
+  --color-bg-light: #182820;
+  --color-bg-cream: #121E18;
+  --color-bg-shop: #121E18;
+  --color-mocca-dark: #D1E1D9;
+  --color-mocca-muted: #9BB8A9;
+  --color-mocca-border: #233D30;
+  --color-mocca-active: #D1E1D9;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--color-bg-cream);
+  color: var(--color-mocca-dark);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
+  overflow-x: clip;
+}
+
+h1,
+h2,
+h3,
+h4,
+.serif-font {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  color: var(--color-mocca-dark);
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+  transition: var(--transition-smooth);
+}
+
+button {
+  font-family: var(--font-body);
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+/* Custom premium scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-cream);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-mocca-muted);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-mocca-dark);
+}
+
+/* Selection Highlight */
+::selection {
+  background-color: var(--color-mocca-dark);
+  color: var(--color-bg-cream);
+}
