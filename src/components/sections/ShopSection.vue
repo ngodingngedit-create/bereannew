@@ -198,11 +198,9 @@ const selectedColors = ref({});
 const fetchProducts = async () => {
   try {
     const apiUrl = import.meta.env.VITE_API_URL || 'https://api.kolektix.com';
-    const response = await fetch(`${apiUrl}/api/creator-maping-product/tokomocca.id`);
+    const response = await fetch(`${apiUrl}/api/product?creator_id=187`);
     const json = await response.json();
-    const data = json.products?.data || (Array.isArray(json) ? json : json.data);
-    
-    const affiliateCreators = json.affiliate_creators || [];
+    const data = json.data || (Array.isArray(json) ? json : null);
     
     if (data) {
       const checkPreorderActive = (p) => {
@@ -263,7 +261,6 @@ const fetchProducts = async () => {
         let finalPrice = price;
         
         let images = p.images || p.product_image;
-        const currentCreator = affiliateCreators.find(c => c.id === p.creator?.id) || {};
         return {
           id: p.id,
           slug: p.slug,
@@ -279,9 +276,9 @@ const fetchProducts = async () => {
           creator: { 
             name: p.creator?.name || 'My Diary Records', 
             is_verified: p.creator?.is_verified,
-            image_url: currentCreator.image_url || p.creator?.image_url || '/logo_mocca.png',
+            image_url: p.creator?.image_url || '/logo_mocca.png',
             avatarInitial: p.creator?.name?.[0] || 'M',
-            creator_title: currentCreator.creator_title || 'Official Store'
+            creator_title: 'Official Store'
           },
           has_store_location: p.has_store_location,
           is_preorder: checkPreorderActive(p)
