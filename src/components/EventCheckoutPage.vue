@@ -416,7 +416,7 @@
           <!-- Kolektix Branding Info -->
           <div class="bottom-kolektix-brand-checkout">
             <div class="kolektix-avatar-wrapper">
-              <img src="/logo/logoKolektix.png" alt="Kolektix Logo" class="kolektix-brand-logo" />
+              <img src="/logo/logo.webp" alt="Kolektix Logo" class="kolektix-brand-logo" />
             </div>
             <div class="kolektix-brand-info">
               <span class="kolektix-brand-label">Kolektix Secure</span>

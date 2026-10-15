@@ -423,22 +423,22 @@ const showToast = (msg) => {
 
 <style scoped>
 .checkout-page-wrapper {
-  background-color: #F5F2ED; /* Warm cream background */
+  background-color: #fff;
   min-height: 100vh;
   width: 100%;
-  padding: 2.5rem 0 5rem 0;
+  padding: 1.5rem 0 4rem 0;
 }
 
 .checkout-container {
-  max-width: 1440px;
+  max-width: 1600px;
   margin: 0 auto;
-  padding: 0 4rem;
+  padding: 0 3rem;
 }
 
 /* Page Title area */
 .checkout-title-section {
   text-align: center;
-  margin-bottom: 3.5rem;
+  margin-bottom: 1.75rem;
 }
 
 .checkout-main-title {
@@ -480,7 +480,7 @@ const showToast = (msg) => {
 .checkout-grid {
   display: grid;
   grid-template-columns: 2.2fr 1fr;
-  gap: 2rem;
+  gap: 1.25rem;
   align-items: start;
 }
 
@@ -501,9 +501,9 @@ const showToast = (msg) => {
 .table-header {
   display: grid;
   grid-template-columns: 4.5fr 1.5fr 1.5fr 1fr;
-  background-color: #FAF9F6;
+  background-color: #fff;
   border-bottom: 1px solid var(--color-mocca-border);
-  padding: 1.25rem 1.5rem;
+  padding: 0.85rem 1rem;
 }
 
 .header-col {
@@ -525,12 +525,12 @@ const showToast = (msg) => {
 
 .cart-row {
   border-bottom: 1px solid var(--color-mocca-border);
-  padding: 1.5rem 1.5rem;
+  padding: 0.9rem 1rem;
   transition: all 0.25s ease;
 }
 
 .cart-row:hover {
-  background-color: #FCFAF7;
+  background-color: #f8f8f8;
 }
 
 .row-inactive {
@@ -540,7 +540,7 @@ const showToast = (msg) => {
 .row-flex-wrap {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.6rem;
 }
 
 .row-main-data {
@@ -552,7 +552,7 @@ const showToast = (msg) => {
 .product-selection {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 /* Custom Checkbox */
@@ -611,12 +611,12 @@ const showToast = (msg) => {
 
 /* Product details */
 .product-thumbnail {
-  width: 72px;
-  height: 72px;
+  width: 60px;
+  height: 60px;
   border-radius: 6px;
   overflow: hidden;
   border: 1px solid var(--color-mocca-border);
-  background-color: #FAF9F6;
+  background-color: #fff;
   flex-shrink: 0;
 }
 
@@ -629,7 +629,7 @@ const showToast = (msg) => {
 .product-meta {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.2rem;
 }
 
 .product-name {
@@ -649,7 +649,7 @@ const showToast = (msg) => {
   font-size: 0.72rem;
   font-weight: 500;
   color: var(--color-mocca-muted);
-  background-color: #FAF9F6;
+  background-color: #f4f4f4;
   border: 1px solid var(--color-mocca-border);
   padding: 2px 8px;
   border-radius: 4px;
@@ -701,7 +701,7 @@ const showToast = (msg) => {
 }
 
 .qty-btn:hover:not(:disabled) {
-  background-color: #FAF9F6;
+  background-color: #f4f4f4;
 }
 
 .qty-btn:disabled {
@@ -759,10 +759,10 @@ const showToast = (msg) => {
 
 .note-input {
   flex-grow: 1;
-  background-color: #FAF9F6;
+  background-color: #f4f4f4;
   border: 1px solid var(--color-mocca-border);
   border-radius: 6px;
-  padding: 0.45rem 0.85rem;
+  padding: 0.4rem 0.75rem;
   font-family: var(--font-body);
   font-size: 0.8rem;
   color: var(--color-mocca-dark);
@@ -771,15 +771,15 @@ const showToast = (msg) => {
 }
 
 .note-input:focus {
-  background-color: #FFFFFF;
+  background-color: #fff;
   border-color: var(--color-mocca-dark);
   box-shadow: 0 0 0 3px rgba(47, 78, 62, 0.05);
 }
 
 /* Select All Footer */
 .table-footer {
-  padding: 1.25rem 1.5rem;
-  background-color: #FAF9F6;
+  padding: 0.75rem 1rem;
+  background-color: #fff;
   border-top: 1px solid var(--color-mocca-border);
 }
 
@@ -818,7 +818,7 @@ const showToast = (msg) => {
 .right-column {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
   width: 100%;
 }
 
@@ -832,10 +832,10 @@ const showToast = (msg) => {
 }
 
 .summary-card {
-  background-color: #FFFFFF;
+  background-color: #fff;
   border: 1px solid var(--color-mocca-border);
   border-radius: 12px;
-  padding: 2rem;
+  padding: 1.5rem;
   box-shadow: 0 4px 20px rgba(47, 78, 62, 0.03);
 }
 
@@ -844,13 +844,13 @@ const showToast = (msg) => {
   font-size: 1.5rem;
   font-weight: 500;
   color: var(--color-mocca-dark);
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .summary-rows {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.6rem;
 }
 
 .summary-row {
@@ -897,12 +897,12 @@ const showToast = (msg) => {
 .estimate-banner {
   display: flex;
   align-items: center;
-  gap: 0.85rem;
-  background-color: #FAF5EF;
-  border: 1px solid rgba(217, 160, 91, 0.2);
+  gap: 0.75rem;
+  background-color: #f7f7f7;
+  border: 1px solid var(--color-mocca-border);
   border-radius: 8px;
-  padding: 0.85rem 1rem;
-  margin-top: 1.5rem;
+  padding: 0.75rem 0.9rem;
+  margin-top: 1rem;
 }
 
 .truck-icon {
@@ -932,8 +932,8 @@ const showToast = (msg) => {
 .summary-actions {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  margin-top: 1.75rem;
+  gap: 0.6rem;
+  margin-top: 1.25rem;
 }
 
 .primary-checkout-btn {
@@ -976,7 +976,7 @@ const showToast = (msg) => {
 }
 
 .back-to-shop-btn:hover {
-  background-color: #FAF9F6;
+  background-color: #f4f4f4;
   border-color: var(--color-mocca-dark);
 }
 
@@ -1113,23 +1113,64 @@ const showToast = (msg) => {
   }
   .checkout-grid {
     grid-template-columns: 1.8fr 1fr;
-    gap: 1.5rem;
+    gap: 1rem;
+  }
+  .summary-card {
+    padding: 1.25rem;
   }
 }
 
 @media (max-width: 768px) {
   .checkout-page-wrapper {
-    padding: 1.5rem 0 3rem 0;
+    padding: 0.85rem 0 2.5rem 0;
   }
   .checkout-container {
-    padding: 0 1.25rem;
+    padding: 0 1rem;
+  }
+  .checkout-title-section {
+    margin-bottom: 1rem;
   }
   .checkout-main-title {
-    font-size: 2.25rem;
+    font-size: clamp(1.5rem, 6.5vw, 1.85rem);
+  }
+  .checkout-subtitle {
+    font-size: 0.82rem;
+    padding: 0 0.5rem;
   }
   .checkout-grid {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
+    gap: 0.85rem;
+  }
+  .right-column {
+    gap: 0.75rem;
+  }
+  .summary-card {
+    padding: 1rem;
+  }
+  .summary-title {
+    font-size: 1.15rem;
+    margin-bottom: 0.75rem;
+  }
+  .trust-signals-card {
+    padding: 1rem;
+  }
+  .trust-text {
+    font-size: 0.8rem;
+  }
+  .accordion-desc {
+    padding: 0.25rem 0 0.5rem 0;
+    font-size: 0.72rem;
+  }
+  .empty-checkout-state {
+    padding: 2.5rem 1.25rem;
+    margin: 1.5rem auto;
+  }
+  .empty-checkout-title {
+    font-size: 1.35rem;
+  }
+  .empty-checkout-subtitle {
+    font-size: 0.85rem;
+    margin-bottom: 1.5rem;
   }
   
   /* Convert Table to Card List on mobile */
@@ -1138,20 +1179,32 @@ const showToast = (msg) => {
   }
   
   .cart-row {
-    padding: 1.25rem 1rem;
+    padding: 0.85rem;
   }
   
   .row-main-data {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    gap: 0.75rem;
+    align-items: stretch;
+    gap: 0.6rem;
     position: relative;
     width: 100%;
   }
   
   .product-selection {
     width: 100%;
+    padding-right: 2rem;
+  }
+  
+  .product-thumbnail {
+    width: 56px;
+    height: 56px;
+  }
+  
+  .product-name {
+    font-size: 0.9rem;
+    line-height: 1.3;
+    word-break: break-word;
   }
   
   .col-data {
@@ -1266,8 +1319,8 @@ const showToast = (msg) => {
 .summary-products-list {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 1.25rem;
+  gap: 0.6rem;
+  margin-bottom: 0.85rem;
   max-height: 240px;
   overflow-y: auto;
   padding-right: 0.5rem;
@@ -1279,7 +1332,7 @@ const showToast = (msg) => {
 }
 
 .summary-products-list::-webkit-scrollbar-track {
-  background: #FDFBF7;
+  background: #f4f4f4;
   border-radius: 4px;
 }
 
@@ -1296,8 +1349,8 @@ const showToast = (msg) => {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 0.75rem;
-  padding-bottom: 0.75rem;
+  gap: 0.6rem;
+  padding-bottom: 0.5rem;
   border-bottom: 1px dotted var(--color-mocca-border);
 }
 
@@ -1308,15 +1361,15 @@ const showToast = (msg) => {
 
 .prod-left {
   display: flex;
-  gap: 0.75rem;
+  gap: 0.6rem;
   flex-grow: 1;
 }
 
 .prod-thumb {
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border-radius: 6px;
-  background-color: #FCFAF7;
+  background-color: #fff;
   border: 1px solid var(--color-mocca-border);
   overflow: hidden;
   display: flex;
@@ -1355,7 +1408,7 @@ const showToast = (msg) => {
   font-size: 0.7rem;
   font-style: italic;
   color: var(--color-mocca-muted);
-  background-color: #FAF5EE;
+  background-color: #f4f4f4;
   padding: 0.15rem 0.4rem;
   border-radius: 4px;
   margin-top: 0.25rem;
@@ -1387,7 +1440,7 @@ const showToast = (msg) => {
   font-size: 0.85rem;
   color: var(--color-mocca-muted);
   font-style: italic;
-  background-color: #FAF8F5;
+  background-color: #f7f7f7;
   border-radius: 8px;
   border: 1px dashed var(--color-mocca-border);
 }
@@ -1399,14 +1452,16 @@ const showToast = (msg) => {
   width: 100%;
   background-color: var(--color-bg-light);
   border-top: 1px solid var(--color-mocca-border);
-  padding: 1rem 2rem;
+  padding: 0.85rem 1rem;
   z-index: 1000;
   box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .fixed-payment-actions-inner {
-  max-width: 1040px;
-  margin: 0 auto;
+  max-width: none;
+  width: 100%;
+  margin: 0;
+  padding: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1433,6 +1488,8 @@ const showToast = (msg) => {
 
 .fixed-pay-btn {
   margin-top: 0 !important;
+  margin-left: auto !important;
+  margin-right: 0 !important;
   max-width: 250px !important;
   padding: 0.75rem 1.5rem !important;
 }
@@ -1443,19 +1500,23 @@ const showToast = (msg) => {
 
 @media (max-width: 768px) {
   .fixed-payment-actions {
-    padding: 1rem 1.25rem;
-    padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+    padding: 0.75rem 1rem;
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  }
+  .fixed-payment-actions-inner {
+    gap: 0.75rem;
   }
   .fixed-back-btn {
     font-size: 0.8rem !important;
   }
   .fixed-pay-btn {
-    max-width: 180px !important;
+    max-width: none !important;
+    width: 100%;
     font-size: 0.85rem !important;
-    padding: 0.6rem 1rem !important;
+    padding: 0.7rem 1rem !important;
   }
   .checkout-page {
-    padding-bottom: 100px;
+    padding-bottom: 110px;
   }
 }
 </style>

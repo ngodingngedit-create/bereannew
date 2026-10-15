@@ -1,5 +1,24 @@
 <template>
   <div class="payment-page-wrapper">
+    <!-- Mobile-only timer below header (green bordered) -->
+    <div class="mobile-timer-bar" aria-label="Batas waktu pembayaran">
+      <svg viewBox="0 0 36 36" class="circular-chart">
+        <path class="circle-bg"
+          d="M18 2.0845
+            a 15.9155 15.9155 0 0 1 0 31.831
+            a 15.9155 15.9155 0 0 1 0 -31.831"
+        />
+        <path class="circle-progress"
+          :stroke-dasharray="100"
+          :stroke-dashoffset="paymentTimeProgress"
+          d="M18 2.0845
+            a 15.9155 15.9155 0 0 1 0 31.831
+            a 15.9155 15.9155 0 0 1 0 -31.831"
+        />
+      </svg>
+      <div class="timer-text">{{ formattedPaymentTime }}</div>
+      <span class="mobile-timer-label">{{ currentLang === 'id' ? 'Sisa waktu pembayaran' : 'Payment time left' }}</span>
+    </div>
     <div class="payment-container">
     
       <!-- Main Columns Grid Layout -->
@@ -407,12 +426,7 @@
     <!-- Fixed Bottom Action Bar -->
     <div class="fixed-payment-actions">
       <div class="fixed-payment-actions-inner">
-        <div style="display: flex; align-items: center; gap: 2.5rem;">
-          <button class="back-to-cart-link-btn fixed-back-btn" @click="backToCheckout">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="back-icon"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-            Kembali
-          </button>
-          
+        <div class="fixed-left-group">
           <div class="payment-timer-wrapper">
             <svg viewBox="0 0 36 36" class="circular-chart">
               <path class="circle-bg"
@@ -430,6 +444,10 @@
             </svg>
             <div class="timer-text">{{ formattedPaymentTime }}</div>
           </div>
+          <button class="back-to-cart-link-btn fixed-back-btn" @click="backToCheckout">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="back-icon"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            Kembali
+          </button>
         </div>
         
         <button class="primary-checkout-btn font-bold fixed-pay-btn" @click="submitOrder" :disabled="isSubmitting || !isFormComplete">
@@ -492,7 +510,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { currentPage, cartItems, clearCart, updateQuantity, removeFromCart, checkedCheckoutItems } from '../store/cart.js';
+import { currentPage, cartItems, clearCart, updateQuantity, removeFromCart, checkedCheckoutItems, currentLang } from '../store/cart.js';
 
 // Timer Logic
 const paymentTimeLeft = ref(15 * 60);
@@ -786,8 +804,28 @@ const saveAddressAndFetchShipping = async () => {
   
   isFetchingShipping.value = true;
   shippingType.value = '';
-  courierServices.value = { jne: [], jnt: [], sicepat: [], anteraja: [] };
-  
+  courierServices.value = {
+    flat: [
+      {
+        id: 'flat_reguler',
+        name: 'Reguler',
+        desc: 'Estimasi 2-3 hari',
+        price: 4000,
+        originalName: 'Standar'
+      }
+    ]
+  };
+  shippingType.value = 'courier';
+  selectedCourier.value = 'flat';
+  expandedCourier.value = 'flat';
+  selectedServiceId.value = 'flat_reguler';
+  shippingPrice.value = 4000;
+  isShippingReady.value = true;
+  isFetchingShipping.value = false;
+  showToast('Ongkos kirim Rp 4.000 diterapkan.');
+
+  // ponytail: API cek-all-ongkir replaced by flat Rp 4.000. Reconnect API when dynamic rates return.
+  if (false) {
   try {
     let totalWeight = 0;
     activeCartItems.value.forEach(item => {
@@ -881,6 +919,7 @@ const saveAddressAndFetchShipping = async () => {
     showToast('Gagal memuat ongkos kirim. Silakan periksa kembali detail alamat.');
   } finally {
     isFetchingShipping.value = false;
+  }
   }
 };
 
@@ -1247,17 +1286,17 @@ const formatPrice = (price) => {
 <style scoped>
 /* Colors & Global Typography defaults */
 .payment-page-wrapper {
-  background-color: #F5F2ED;
+  background-color: #fff;
   min-height: 100vh;
-  padding: 2rem 0 4rem 0;
+  padding: 1.5rem 0 4rem 0;
   font-family: var(--font-body);
   color: var(--color-mocca-dark);
 }
 
 .payment-container {
-  max-width: 1200px;
+  max-width: 1600px;
   margin: 0 auto;
-  padding: 0 1.5rem;
+  padding: 0 3rem;
 }
 
 /* Stepper Steppers styling */
@@ -1401,27 +1440,27 @@ const formatPrice = (price) => {
 .payment-grid {
   display: grid;
   grid-template-columns: 2fr 1.15fr;
-  gap: 2rem;
+  gap: 0.5rem;
   align-items: start;
 }
 
 .left-column {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 0.5rem;
 }
 
 /* Cards layout styles */
 .form-card {
-  background-color: #FFFFFF;
+  background-color: #fff;
   border: 1px solid var(--color-mocca-border);
   border-radius: 12px;
-  padding: 2rem;
+  padding: 1.5rem;
   box-shadow: 0 4px 20px rgba(47, 78, 62, 0.02);
-  width: 95%;
-  max-width: 760px;
+  width: 100%;
+  max-width: none;
   margin-left: 0;
-  margin-right: auto;
+  margin-right: 0;
   box-sizing: border-box;
 }
 
@@ -2124,10 +2163,10 @@ const formatPrice = (price) => {
 }
 
 .summary-card {
-  background-color: #FFFFFF;
+  background-color: #fff;
   border: 1px solid var(--color-mocca-border);
   border-radius: 12px;
-  padding: 2rem;
+  padding: 1.5rem;
   box-shadow: 0 4px 20px rgba(47, 78, 62, 0.02);
 }
 
@@ -2144,7 +2183,7 @@ const formatPrice = (price) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .summary-header-row .summary-title {
@@ -2178,8 +2217,8 @@ const formatPrice = (price) => {
 .summary-products-list {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
-  margin-bottom: 1.5rem;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
 }
 
 .summary-prod-item {
@@ -2543,6 +2582,11 @@ const formatPrice = (price) => {
   font-family: var(--font-body);
 }
 
+/* Mobile-only timer bar below sticky header */
+.mobile-timer-bar {
+  display: none;
+}
+
 .circular-chart {
   width: 24px;
   height: 24px;
@@ -2833,21 +2877,21 @@ const formatPrice = (price) => {
   
   .payment-grid {
     grid-template-columns: 1.5fr 1.1fr;
-    gap: 1.5rem;
+    gap: 0.75rem;
   }
 }
 
 @media (max-width: 768px) {
   .payment-page-wrapper {
     padding: 1rem 0 5rem 0;
-    width: 100vw;
+    width: 100%;
     max-width: 100%;
-    overflow-x: hidden;
+    overflow-x: visible;
     box-sizing: border-box;
   }
   
   .payment-container {
-    padding: 0 1rem;
+    padding: 0.25rem 1rem 0 1rem;
     width: 100%;
     box-sizing: border-box;
   }
@@ -2871,7 +2915,7 @@ const formatPrice = (price) => {
   
   .payment-grid {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
+    gap: 0.85rem;
   }
   
   .form-grid-3, .form-grid-2 {
@@ -3032,18 +3076,29 @@ const formatPrice = (price) => {
   width: 100%;
   background-color: var(--color-bg-light);
   border-top: 1px solid var(--color-mocca-border);
-  padding: 1rem 2rem;
+  padding: 0.85rem 1rem;
   z-index: 1000;
   box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .fixed-payment-actions-inner {
-  max-width: 1040px;
-  margin: 0 auto;
+  max-width: none;
+  width: 100%;
+  margin: 0;
+  padding: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
+}
+
+.fixed-left-group {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-right: auto;
+  padding-left: 0;
+  min-width: 0;
 }
 
 .fixed-back-btn {
@@ -3056,7 +3111,10 @@ const formatPrice = (price) => {
 
 .fixed-pay-btn {
   margin-top: 0 !important;
-  max-width: 250px !important;
+  margin-left: auto;
+  margin-right: 0;
+  max-width: 280px !important;
+  flex-shrink: 0;
 }
 
 .payment-page-wrapper {
@@ -3065,19 +3123,67 @@ const formatPrice = (price) => {
 
 @media (max-width: 768px) {
   .fixed-payment-actions {
-    padding: 1rem 1.25rem;
-    padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+    padding: 0.75rem 1rem;
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  }
+  .fixed-payment-actions-inner {
+    gap: 0.75rem;
+  }
+  .fixed-left-group {
+    gap: 0.75rem;
   }
   .fixed-back-btn {
     font-size: 0.8rem !important;
   }
   .fixed-pay-btn {
-    max-width: 180px !important;
+    max-width: 170px !important;
     font-size: 0.85rem !important;
     padding: 0.6rem 1rem !important;
   }
   .payment-page-wrapper {
+    padding-top: 0.5rem;
     padding-bottom: 100px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-x: clip;
+  }
+  /* Mobile timer attached under header + sticky, full green border */
+  .mobile-timer-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    position: sticky;
+    top: 64px;
+    z-index: 900;
+    margin: 0;
+    padding: 0.5rem 1rem;
+    background-color: #fff;
+    border: 1.5px solid var(--color-mocca-dark);
+    border-radius: 0;
+    box-shadow: 0 2px 10px rgba(47, 78, 62, 0.06);
+  }
+  .mobile-timer-bar .circular-chart {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+  }
+  .mobile-timer-bar .timer-text {
+    font-size: 0.85rem;
+  }
+  .mobile-timer-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--color-mocca-dark);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .fixed-left-group .payment-timer-wrapper {
+    display: none;
+  }
+  .fixed-left-group {
+    gap: 0;
   }
 }
 .payment-popup-overlay {

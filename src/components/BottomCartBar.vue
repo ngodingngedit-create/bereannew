@@ -109,9 +109,9 @@ const formatPrice = (price) => {
 }
 
 .bottom-bar-container {
-  max-width: 1440px;
+  max-width: 1600px;
   margin: 0 auto;
-  padding: 0 4rem;
+  padding: 0 3rem;
   display: flex;
   justify-content: space-between;
   align-items: center;

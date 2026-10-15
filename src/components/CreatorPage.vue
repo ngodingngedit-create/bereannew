@@ -115,13 +115,13 @@
             </div>
 
             <!-- 4. Terjual -->
-            <div class="stat-item" v-if="false">
+            <div class="stat-item">
               <svg class="stat-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="9" cy="21" r="1"></circle>
                 <circle cx="20" cy="21" r="1"></circle>
                 <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
               </svg>
-              <span class="stat-value"><strong>5.2K+</strong> {{ currentLang === 'id' ? 'Terjual' : 'Sold' }}</span>
+              <span class="stat-value"><strong>{{ totalSold }}</strong> {{ currentLang === 'id' ? 'Terjual' : 'Sold' }}</span>
             </div>
           </div>
         </div>
@@ -226,6 +226,26 @@
             
             <div class="product-price-row">
               <span class="product-price">{{ formatPrice(product.price) }}</span>
+            </div>
+
+            <div class="product-meta-row">
+              <span v-if="product.totalReview > 0" class="product-meta-item">★ {{ product.rating }} ({{ product.totalReview }})</span>
+              <span class="product-meta-item">{{ product.totalSold }} {{ currentLang === 'id' ? 'terjual' : 'sold' }}</span>
+            </div>
+
+            <div v-if="product.variants.length > 1" class="variant-chips">
+              <span
+                v-for="v in product.variants"
+                :key="v.id"
+                class="variant-chip"
+                :class="{ 'is-soldout': v.soldOut }"
+              >{{ v.name }}</span>
+            </div>
+
+            <div class="product-badges">
+              <span v-if="product.isSoldOut" class="badge badge-soldout">{{ currentLang === 'id' ? 'Habis' : 'Sold out' }}</span>
+              <span v-else-if="product.isPreorder" class="badge badge-preorder">Pre-order</span>
+              <span v-if="product.has_store_location" class="badge">{{ product.has_store_location.store_name }}</span>
             </div>
 
 
@@ -337,56 +357,56 @@ const selectedColors = ref({});
 const fetchCreatorData = async () => {
   const apiUrl = import.meta.env.VITE_API_URL || 'https://api.kolektix.com';
   
-  if (!activeCreatorSlug.value) {
-    activeCreatorSlug.value = apiUrl.includes('my.id') ? 48 : 127;
-  }
 
   isLoading.value = true;
   try {
-    const res = await fetch(`${apiUrl}/api/creator/${activeCreatorSlug.value}`);
+    const res = await fetch(`${apiUrl}/api/product?creator_id=187`);
     const json = await res.json();
-    if (json.data) {
-      creatorData.value = json.data;
-      
-      const prodRes = await fetch(`${apiUrl}/api/product?creator_id=${json.data.id}`);
-      const prodJson = await prodRes.json();
-      const pData = Array.isArray(prodJson) ? prodJson : prodJson.data;
-      
-      if (pData) {
-        products.value = pData.filter(p => p.product_status_id == 2).map(p => {
-          let price = parseInt(p.price);
-          let variantId = null;
-          if (price === 0 && p.product_varian && p.product_varian.length > 0) {
-            price = parseInt(p.product_varian[0].price);
-            variantId = p.product_varian[0].id;
-          } else if (p.product_varian && p.product_varian.length > 0) {
-            variantId = p.product_varian[0].id;
-          }
-          return {
-            id: p.id,
-            slug: p.slug,
-            category: 'apparel',
-            title: p.product_name,
-            price: price,
-            variant_id: variantId,
-            image: p.product_image?.[0]?.image_url || '/mocca_group_tee.png',
-            colors: ['cream'],
-            creator: { 
-              name: json.data.name, 
-              image_url: json.data.image_url,
-              avatarInitial: json.data.name?.[0] || 'M',
-              creator_title: json.data.creator_title || 'Official Store'
-            },
-            has_store_location: p.has_store_location,
-            admin_fee: p.admin_fee || 0
-          };
-        });
-        
-        pData.forEach(p => {
-          selectedColors.value[p.id] = 'cream';
-        });
+    const pData = Array.isArray(json) ? json : json.data || [];
+
+    creatorData.value = pData[0]?.creator ?? null;
+
+    products.value = pData.map(p => {
+      const variants = p.product_varian || [];
+      let price = parseFloat(p.price) || 0;
+      if (price === 0 && variants.length > 0) {
+        price = parseFloat(variants[0].price) || 0;
       }
-    }
+      return {
+        id: p.id,
+        slug: p.slug,
+        category: 'apparel',
+        title: p.product_name,
+        description: p.description,
+        sku: p.sku,
+        price,
+        variant_id: variants[0]?.id ?? null,
+        variants: variants.map(v => ({
+          id: v.id,
+          name: v.varian_name,
+          price: parseFloat(v.price) || 0,
+          stock: v.stock_qty,
+          soldOut: v.is_soldout == 1,
+        })),
+        image: p.product_image?.[0]?.image_url || '/mocca_group_tee.png',
+        colors: ['cream'],
+        creator: {
+          name: p.creator?.name,
+          image_url: p.creator?.image_url,
+          avatarInitial: p.creator?.name?.[0] || 'M',
+          creator_title: 'Official Store',
+        },
+        totalSold: p.total_sold || 0,
+        rating: p.average_star,
+        totalReview: p.total_review || 0,
+        isSoldOut: p.is_soldout == 1,
+        isPreorder: p.is_preorder == 1,
+        has_store_location: p.has_store_location,
+        admin_fee: parseFloat(p.admin_fee) || 0,
+      };
+    });
+
+    selectedColors.value = Object.fromEntries(pData.map(p => [p.id, 'cream']));
   } catch (err) {
     console.error('Failed to fetch creator data:', err);
   } finally {
@@ -464,6 +484,8 @@ const filteredProducts = computed(() => {
 
   return list;
 });
+
+const totalSold = computed(() => products.value.reduce((sum, p) => sum + p.totalSold, 0));
 </script>
 
 <style scoped>
@@ -477,11 +499,66 @@ const filteredProducts = computed(() => {
 }
 
 .creator-page-container {
-  max-width: 1440px;
+  max-width: 1600px;
   margin: 0 auto;
-  padding: 0 6rem;
+  padding: 0 3rem;
   display: flex;
   flex-direction: column;
+}
+
+/* Product meta: rating, sold, variants, status */
+.product-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-size: 0.75rem;
+  color: var(--color-mocca-muted);
+  margin-top: 0.4rem;
+}
+
+.variant-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.6rem;
+}
+
+.variant-chip {
+  font-size: 0.7rem;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid rgba(47, 78, 62, 0.2);
+  border-radius: 6px;
+  color: var(--color-mocca-dark);
+}
+
+.variant-chip.is-soldout {
+  opacity: 0.4;
+  text-decoration: line-through;
+}
+
+.product-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.6rem;
+}
+
+.badge {
+  font-size: 0.68rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  background: rgba(47, 78, 62, 0.08);
+  color: var(--color-mocca-dark);
+}
+
+.badge-soldout {
+  background: #f3e3e1;
+  color: #8a2e24;
+}
+
+.badge-preorder {
+  background: #e7efe9;
+  color: var(--color-mocca-dark);
 }
 
 /* Breadcrumbs Styling */

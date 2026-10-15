@@ -3,7 +3,7 @@
     <div class="header-container">
       <!-- Left: Logo -->
       <div class="logo">
-        <img src="/berean-black.png" alt="Logo" class="logo-img" />
+        <img src="/logo/logo.webp" alt="Logo" class="logo-img" />
 
       </div>
 
@@ -11,17 +11,14 @@
       <nav class="main-nav mobile-hidden">
         <ul>
           <li><a href="#" class="nav-item" :class="{ active: activeSection === 'home' }" @click.prevent="navigateToSection('home')">{{ getMenuLabel('home') }}</a></li>
-          <li><a href="#" class="nav-item" :class="{ active: activeSection === 'collections' }" @click.prevent="navigateToSection('collections')">{{ getMenuLabel('collections') }}</a></li>
-          <li v-if="false"><a href="#" class="nav-item" :class="{ active: activeSection === 'event' }" @click.prevent="navigateToSection('event')">{{ getMenuLabel('event') }}</a></li>
           <li><a href="#" class="nav-item" :class="{ active: activeSection === 'product' }" @click.prevent="navigateToSection('product')">{{ getMenuLabel('product') }}</a></li>
-          <li><a href="#" class="nav-item" :class="{ active: activeSection === 'shop' }" @click.prevent="navigateToSection('shop')">{{ getMenuLabel('shop') }}</a></li>
         </ul>
       </nav>
 
       <!-- Right: Action Icons -->
       <div class="header-actions">
-        <!-- Search Icon (Hidden on Shop Page since it has its own search bar, and hidden on mobile) -->
-        <button v-if="currentPage !== 'shop'" class="action-btn mobile-hidden" @click="toggleSearch" :class="{ 'search-active': isSearchOpen }" aria-label="Search">
+        <!-- Search Icon (global — same icon/dropdown on home and shop, hidden on mobile) -->
+        <button class="action-btn mobile-hidden" @click="toggleSearch" :class="{ 'search-active': isSearchOpen }" aria-label="Search">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="11" cy="11" r="8"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
@@ -136,10 +133,7 @@
         <div class="mobile-sidebar-content">
           <ul class="mobile-nav-list">
             <li><a href="#" :class="{ active: activeSection === 'home' }" @click.prevent="navigateToSection('home'); isMobileMenuOpen = false;">{{ getMenuLabel('home') }}</a></li>
-            <li><a href="#" :class="{ active: activeSection === 'collections' }" @click.prevent="navigateToSection('collections'); isMobileMenuOpen = false;">{{ getMenuLabel('collections') }}</a></li>
-            <li v-if="false"><a href="#" :class="{ active: activeSection === 'event' }" @click.prevent="navigateToSection('event'); isMobileMenuOpen = false;">{{ getMenuLabel('event') }}</a></li>
             <li><a href="#" :class="{ active: activeSection === 'product' }" @click.prevent="navigateToSection('product'); isMobileMenuOpen = false;">{{ getMenuLabel('product') }}</a></li>
-            <li><a href="#" :class="{ active: activeSection === 'shop' }" @click.prevent="navigateToSection('shop'); isMobileMenuOpen = false;">{{ getMenuLabel('shop') }}</a></li>
           </ul>
           
           <div class="mobile-sidebar-actions">
@@ -166,7 +160,7 @@
 
     <!-- Functional Slide-down Search Bar -->
     <Transition name="search-slide">
-      <div v-if="isSearchOpen && currentPage !== 'shop'" class="search-bar-dropdown">
+      <div v-if="isSearchOpen" class="search-bar-dropdown">
         <div class="shop-search-bar">
           <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="11" cy="11" r="8"></circle>
@@ -207,7 +201,7 @@ const searchInput = ref(null);
 
 const activeSection = ref('home');
 
-// Scroll observer to update active section based on scroll position of .collections-container
+// Scroll observer removed with the collections section — home nav stays active on the homepage.
 const updateActiveSectionOnScroll = () => {
   if (currentPage.value === 'shop' || currentPage.value === 'checkout' || currentPage.value === 'payment') {
     if (activeSection.value !== 'product') activeSection.value = 'shop';
@@ -217,20 +211,7 @@ const updateActiveSectionOnScroll = () => {
     activeSection.value = '';
     return;
   }
-  
-  const collectionsEl = document.querySelector('.collections-container');
-  if (!collectionsEl) {
-    activeSection.value = 'home';
-    return;
-  }
-  
-  const rect = collectionsEl.getBoundingClientRect();
-  // If the top of the collections section is scrolled above 45% of viewport height, mark collections active
-  if (rect.top <= window.innerHeight * 0.45) {
-    activeSection.value = 'collections';
-  } else {
-    activeSection.value = 'home';
-  }
+  activeSection.value = 'home';
 };
 
 // Handle navigation clicks dynamically
@@ -257,22 +238,6 @@ const navigateToSection = (section) => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
     activeSection.value = 'home';
-  } else if (section === 'collections') {
-    const scrollToCollections = () => {
-      const collectionsEl = document.querySelector('.collections-container');
-      if (collectionsEl) {
-        const yOffset = -90; // sticky header padding
-        const y = collectionsEl.getBoundingClientRect().top + window.pageYOffset + yOffset;
-        window.scrollTo({ top: y, behavior: 'smooth' });
-      }
-    };
-    if (currentPage.value !== 'home') {
-      currentPage.value = 'home';
-      setTimeout(scrollToCollections, 150); // wait for homepage to mount and transitions
-    } else {
-      scrollToCollections();
-    }
-    activeSection.value = 'collections';
   } else if (section === 'about' || section === 'faq') {
     const scrollToFooter = () => {
       const footerEl = document.querySelector('.site-footer');
@@ -487,16 +452,16 @@ const getMenuLabel = (key) => {
 }
 
 .header-container {
-  max-width: 1440px;
+  max-width: 1600px;
   margin: 0 auto;
-  padding: 1rem 6rem;
+  padding: 0.5rem 3rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
 .logo-img {
-  height: 35px;
+  height: 60px;
   width: auto;
   object-fit: contain;
   margin-right: 1rem;
@@ -509,13 +474,19 @@ const getMenuLabel = (key) => {
   align-items: center;
 }
 
+.main-nav {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
 .nav-item {
   font-family: var(--font-body);
   font-size: 0.9rem;
   font-weight: 400;
   color: var(--color-mocca-dark);
   opacity: 0.85;
-  padding: 0.5rem 0;
+  padding: 0.25rem 0;
   position: relative;
   letter-spacing: 0.02em;
   transition: opacity 0.25s ease;
@@ -553,7 +524,7 @@ const getMenuLabel = (key) => {
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
 .action-btn {
@@ -609,7 +580,7 @@ const getMenuLabel = (key) => {
   background-color: #FAF6F0; /* Soft warm cream */
   border-top: 1px solid rgba(59, 35, 20, 0.06);
   border-bottom: 1px solid rgba(59, 35, 20, 0.08);
-  padding: 0.85rem 6rem;
+  padding: 0.85rem 3rem;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -997,7 +968,7 @@ const getMenuLabel = (key) => {
   }
   
   .header-container {
-      padding: 1rem 1.25rem;
+      padding: 0.5rem 1.25rem;
   }
   
   .mobile-hidden {
@@ -1009,7 +980,7 @@ const getMenuLabel = (key) => {
   }
   
   .logo-img {
-      height: 28px;
+      height: 48px;
       width: auto;
   }
   

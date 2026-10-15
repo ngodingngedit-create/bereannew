@@ -1,9 +1,9 @@
 <template>
   <Transition name="modal-fade">
-    <div v-if="isOpen" class="modal-backdrop" @click="close">
+    <div v-if="isOpen" class="modal-backdrop" :class="{ 'is-inline': inline }" @click="!inline && close()">
       <div class="modal-container" @click.stop>
         <!-- Close button top-right -->
-        <button class="close-modal-btn" @click="close" aria-label="Close modal">
+        <button v-if="!inline" class="close-modal-btn" @click="close" aria-label="Close modal">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="close-icon"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
 
@@ -155,9 +155,9 @@
                 </div>
 
                 <div class="cta-buttons-row">
-                  <button class="add-to-cart-outline-btn" @click="handleAddToCart" :disabled="isCurrentSoldOut">
+                  <button class="add-to-cart-outline-btn" @click="handleAddToCart" :disabled="isCurrentSoldOut" aria-label="Add to cart">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="bag-icon"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
-                    + Cart
+                    <span class="add-cart-label">+ Cart</span>
                   </button>
                   <button class="buy-now-solid-btn" @click="handleBuyNow" :disabled="isCurrentSoldOut">Buy Now</button>
                 </div>
@@ -166,34 +166,20 @@
           </div>
         </div>
 
-        <!-- Bottom Feature Bar Grid -->
-        <div class="bottom-trust-features">
-          <div class="trust-item">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="trust-icon"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
-            <div class="trust-text">
-              <span class="trust-title">Estimasi Pengiriman</span>
-              <span class="trust-desc">2-4 Hari Kerja</span>
-            </div>
-          </div>
-          <div class="trust-item">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="trust-icon"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l-7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-            <div class="trust-text">
-              <span class="trust-title">Stok Tersedia</span>
-              <span class="trust-desc">{{ currentStockCount !== null ? currentStockCount : 'Tersedia' }}</span>
-            </div>
-          </div>
-          <div class="trust-item">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="trust-icon"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-            <div class="trust-text">
-              <span class="trust-title">Garansi Original</span>
-              <span class="trust-desc">100% Asli</span>
-            </div>
-          </div>
-          <div class="trust-item">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="trust-icon"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
-            <div class="trust-text">
-              <span class="trust-title">Inspired by</span>
-              <span class="trust-desc">Berean.id's Music</span>
+        <!-- Related product cards (replaces trust features) -->
+        <div class="related-products">
+          <h3 class="related-title">{{ currentLang === 'id' ? 'Produk Terkait' : 'Related Products' }}</h3>
+          <div class="related-grid">
+            <div
+              v-for="(thumb, idx) in productData.thumbnails"
+              :key="idx"
+              class="related-card"
+              @click="activeImageIndex = idx"
+            >
+              <div class="related-image-wrap">
+                <img :src="thumb" :alt="productTitle" class="related-image" loading="lazy" />
+              </div>
+              <p class="related-name">{{ productTitle }}</p>
             </div>
           </div>
         </div>
@@ -216,7 +202,8 @@ import { addToCart, updateQuantity, getItemQuantity, currentPage, currentLang, c
 
 const props = defineProps({
   isOpen: { type: Boolean, required: true },
-  product: { type: Object, default: () => ({}) }
+  product: { type: Object, default: () => ({}) },
+  inline: { type: Boolean, default: false }
 });
 
 const emit = defineEmits(['close']);
@@ -707,7 +694,7 @@ const formatPrice = (price) => {
   padding: 2.5rem;
   display: flex;
   gap: 1.25rem;
-  background-color: #FAF6F0; /* Soft warm cream */
+  background-color: #fff;
   border-right: 1px solid var(--color-mocca-border);
   overflow-y: auto;
 }
@@ -1322,47 +1309,72 @@ const formatPrice = (price) => {
   background-color: var(--color-mocca-muted);
 }
 
-/* Bottom trust bar grid */
-.bottom-trust-features {
+/* Related product cards (replaces old trust features) */
+.related-products {
   border-top: 1px solid var(--color-mocca-border);
-  background-color: var(--color-bg-light);
-  padding: 1.5rem 2.5rem;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1.5rem;
+  background-color: #fff;
+  padding: 1.5rem 2.5rem 2rem;
 }
 
-.trust-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.trust-icon {
-  width: 24px;
-  height: 24px;
-  color: var(--color-mocca-muted);
-  opacity: 0.7;
-}
-
-.trust-text {
-  display: flex;
-  flex-direction: column;
-}
-
-.trust-title {
-  font-family: var(--font-body);
-  font-size: 0.75rem;
+.related-title {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
   font-weight: 600;
   color: var(--color-mocca-dark);
-  line-height: 1.2;
+  margin: 0 0 1rem;
 }
 
-.trust-desc {
+.related-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.related-card {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+  text-align: left;
+}
+
+.related-image-wrap {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: #fff;
+  border: 1px solid var(--color-mocca-border);
+}
+
+.related-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.related-card:hover .related-image {
+  transform: scale(1.05);
+}
+
+.related-name {
   font-family: var(--font-body);
-  font-size: 0.7rem;
-  color: var(--color-mocca-muted);
-  line-height: 1.2;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #111;
+  line-height: 1.35;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 2.3rem;
 }
 
 /* Toast */
@@ -1567,6 +1579,33 @@ const formatPrice = (price) => {
   transform: scale(0.96) translateY(10px);
 }
 
+/* Inline page mode (product detail as page, not popup) */
+.modal-backdrop.is-inline {
+  position: static;
+  background: none;
+  backdrop-filter: none;
+  display: block;
+  padding: 1.25rem 3rem 4rem;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+.modal-backdrop.is-inline .modal-container {
+  width: 100%;
+  max-width: none;
+  max-height: none;
+  box-shadow: none;
+  animation: none;
+  border: none;
+  overflow: visible;
+  background: none;
+}
+.modal-backdrop.is-inline .modal-main-content {
+  min-height: auto;
+  height: auto;
+  overflow: visible;
+  background: none;
+}
+
 /* RESPONSIVE SCALING DESIGN */
 @media (max-width: 991px) {
   .modal-container {
@@ -1587,10 +1626,12 @@ const formatPrice = (price) => {
     max-height: 380px;
     padding: 1.75rem;
   }
-  .bottom-trust-features {
-    grid-template-columns: repeat(2, 1fr);
-    padding: 1.25rem 1.75rem;
-    gap: 1rem;
+  .related-products {
+    padding: 1.25rem 1.75rem 1.75rem;
+  }
+  .related-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.85rem;
   }
 }
 
@@ -1625,18 +1666,20 @@ const formatPrice = (price) => {
   .modal-images-column {
     padding: 0;
     width: 100%;
-    flex-direction: column-reverse;
+    flex-direction: column;
     border: none;
     flex-shrink: 0;
+    gap: 0.75rem;
   }
   .main-display-frame {
     width: 100%;
     height: auto;
-    min-height: 350px;
+    min-height: 300px;
     aspect-ratio: 1 / 1;
     border-radius: 24px 24px 0 0;
     border: none;
     background-color: var(--color-bg-light);
+    order: -1;
   }
   .main-display-img {
     object-fit: contain;
@@ -1649,6 +1692,7 @@ const formatPrice = (price) => {
     overflow-x: auto;
     padding: 0 1rem 1rem 1rem;
     gap: 0.5rem;
+    align-items: center;
     -webkit-overflow-scrolling: touch;
   }
   .thumbnails-sidebar::-webkit-scrollbar {
@@ -1659,56 +1703,205 @@ const formatPrice = (price) => {
     height: 64px;
     flex-shrink: 0;
   }
+  .size-chart-side-btn {
+    flex-direction: row;
+    width: auto;
+    padding: 0.5rem 0.75rem;
+    flex-shrink: 0;
+  }
   .modal-info-column {
     max-height: none;
     overflow-y: visible;
-    padding: 1.5rem;
+    padding: 1.25rem 1rem 1.5rem;
+  }
+  .info-header {
+    gap: 0.35rem;
+    margin-bottom: 0.65rem;
+  }
+  .info-meta-row {
+    flex-wrap: wrap;
+    gap: 0.5rem;
   }
   .size-chart-container {
     width: 100%;
     margin-top: 1rem;
   }
-  .bottom-trust-features {
-    display: flex;
-    flex-direction: row;
-    overflow-x: auto;
-    white-space: nowrap;
-    padding: 1rem 1.5rem;
-    gap: 1.5rem;
-    -webkit-overflow-scrolling: touch;
+  .related-products {
+    padding: 0.85rem 1rem 0.75rem;
   }
-  .bottom-trust-features::-webkit-scrollbar {
+  .related-title {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+  }
+  .related-grid {
+    display: flex;
+    gap: 0.65rem;
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+    scrollbar-width: none;
+    scroll-snap-type: x mandatory;
+  }
+  .related-grid::-webkit-scrollbar {
     display: none;
   }
-  .trust-item {
-    flex-shrink: 0;
+  .related-card {
+    flex: 0 0 44%;
+    min-width: 132px;
+    max-width: 200px;
+    scroll-snap-align: start;
+  }
+  .related-name {
+    font-size: 0.75rem;
+    line-height: 1.3;
+    min-height: 1.95rem;
+  }
+  .info-title {
+    font-size: clamp(1.15rem, 5vw, 1.35rem);
+    line-height: 1.25;
+  }
+  .product-description {
+    font-size: 0.8rem;
+    line-height: 1.55;
+    word-break: break-word;
+  }
+  .tab-btn {
+    font-size: 0.8rem;
+    padding: 0.6rem 0.75rem;
+  }
+  .selection-options {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .sizes-row {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .feature-bar {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    padding: 0.65rem 0.75rem;
+  }
+  .feature-label {
+    font-size: 0.7rem;
   }
   .actions-row {
-    flex-wrap: wrap;
-    gap: 0.75rem;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.6rem;
   }
   .modal-qty-adjuster {
-    width: auto;
-    height: 42px;
-    background-color: var(--color-mocca-dark);
-    color: var(--color-bg-light);
-    border-color: var(--color-mocca-dark);
-    border-radius: 6px;
+    width: 100%;
+    height: 44px;
+    background-color: #fff;
+    color: var(--color-mocca-dark);
+    border: 1px solid var(--color-mocca-border);
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    align-items: stretch;
   }
   .modal-qty-adjuster .adjust-btn {
-    color: var(--color-bg-light);
-    width: 32px;
+    color: var(--color-mocca-dark);
+    width: 44px;
+    flex-shrink: 0;
+    opacity: 1;
+  }
+  .modal-qty-adjuster .adjust-btn:first-child {
+    border-right: 1px solid var(--color-mocca-border);
+  }
+  .modal-qty-adjuster .adjust-btn:last-child {
+    border-left: 1px solid var(--color-mocca-border);
   }
   .modal-qty-adjuster .qty-num {
-    color: var(--color-bg-light);
+    color: var(--color-mocca-dark);
     font-size: 0.9rem;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .cta-buttons-row {
+    display: flex;
+    gap: 0.6rem;
+    align-items: stretch;
   }
   .add-to-cart-outline-btn {
-    flex-grow: 1;
-    height: 42px;
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    justify-content: center;
+    border-radius: 10px;
+  }
+  .add-to-cart-outline-btn .add-cart-label {
+    display: none;
+  }
+  .add-to-cart-outline-btn .bag-icon {
+    width: 18px;
+    height: 18px;
   }
   .buy-now-solid-btn {
-    width: 100%;
+    width: auto;
+    flex: 1;
+    height: 44px;
+    border-radius: 10px;
+  }
+  .modal-backdrop.is-inline {
+    padding: 0.85rem 1rem 2.5rem;
+  }
+  .modal-backdrop.is-inline .modal-main-content {
+    flex-direction: column;
+    border: 1px solid var(--color-mocca-border);
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: #fff;
+  }
+  .modal-backdrop.is-inline .modal-images-column {
+    border-right: none;
+    border-bottom: 1px solid var(--color-mocca-border);
+    padding: 1rem;
+    gap: 0.75rem;
+  }
+  .modal-backdrop.is-inline .modal-info-column {
+    padding: 1.25rem 1rem 1.5rem;
+  }
+  .modal-backdrop.is-inline .related-products {
+    padding: 1rem 1rem 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-info-column {
+    padding: 1rem 0.85rem 1.25rem;
+  }
+  .main-display-frame {
+    min-height: 260px;
+  }
+  .thumbnails-sidebar .thumb-btn {
+    width: 56px;
+    height: 56px;
+  }
+  .product-tabs {
+    gap: 1rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .product-tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .tab-btn {
+    flex-shrink: 0;
+  }
+  .table-scroll-wrapper {
+    margin: 0 -0.25rem;
+  }
+  .related-products {
+    padding: 0.85rem 0.85rem 1.1rem;
+  }
+  .checkout-toast {
+    left: 1rem;
+    right: 1rem;
+    bottom: 1rem;
   }
 }
 

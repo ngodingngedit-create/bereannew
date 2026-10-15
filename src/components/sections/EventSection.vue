@@ -199,14 +199,14 @@ const openEventDetails = (event) => {
 <style scoped>
 .home-event-section {
   background-color: #FAF6F0; /* Cream background matching home section styles */
-  padding: 5rem 6rem;
+  padding: 5rem 3rem;
   border-top: 1px solid var(--color-mocca-border);
   width: 100%;
   box-sizing: border-box;
 }
 
 .event-section-container {
-  max-width: 1440px;
+  max-width: 1600px;
   width: 100%;
   margin: 0 auto;
 }

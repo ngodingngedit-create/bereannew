@@ -1537,9 +1537,9 @@ watch(displayEvent, () => {
 }
 
 .event-detail-container {
-  max-width: 1440px;
+  max-width: 1600px;
   margin: 0 auto;
-  padding: 0 6rem;
+  padding: 0 3rem;
 }
 
 /* Breadcrumb Navigation */
@@ -1621,21 +1621,21 @@ watch(displayEvent, () => {
   }
 
   .hero-banner-header {
-    max-width: 1440px;
+    max-width: 1600px;
     width: 100%;
     margin: 0 auto;
-    padding: 0.75rem 8rem 0.75rem 8.5rem;
+    padding: 0.75rem 3rem;
   }
 
   .hero-banner-header .event-banner-title {
-    margin-left: 6rem;
+    margin-left: 0;
   }
 
   .hero-banner-body-grid {
-    max-width: 1440px;
+    max-width: 1600px;
     width: 100%;
     margin: 0 auto;
-    padding: 0 6rem;
+    padding: 0 3rem;
   }
 
   .hero-banner-left {
@@ -2541,9 +2541,9 @@ watch(displayEvent, () => {
 }
 
 .bottom-bar-container {
-  max-width: 1440px;
+  max-width: 1600px;
   margin: 0 auto;
-  padding: 0 6rem;
+  padding: 0 3rem;
   display: flex;
   justify-content: space-between;
   align-items: center;

@@ -38,6 +38,15 @@ export const checkedCheckoutItems = ref([]);
 export const currentTheme = ref('cream'); // 'cream' | 'sepia' | 'cocoa'
 export const selectedEvent = ref(null);
 export const selectedTicket = ref(null);
+export const selectedProduct = ref(null);
+export const productReturnPage = ref('home');
+export const productFilter = ref('all');
+export const openProduct = (product) => {
+  selectedProduct.value = product;
+  productReturnPage.value = currentPage.value;
+  currentPage.value = 'product';
+  window.scrollTo({ top: 0 });
+};
 export const ticketQuantity = ref(1);
 export const selectedTickets = ref([]);
 

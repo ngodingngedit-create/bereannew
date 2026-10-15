@@ -2,10 +2,10 @@
   <div class="shop-page-wrapper">
     <!-- Header Spacing to sit perfectly below sticky header -->
     <div class="shop-page-container">
-      <!-- Controls: Filters & Search -->
+      <!-- Controls: Filters -->
       <div class="shop-controls">
-        <!-- Category Filters -->
-        <div class="category-filters">
+        <!-- Category Filters (same underline style as homepage filter-bar) -->
+        <nav class="category-filters" aria-label="Filter product">
           <button 
             v-for="cat in categories" 
             :key="cat.id" 
@@ -15,21 +15,7 @@
           >
             {{ currentLang === 'id' ? cat.nameId : cat.nameEn }}
           </button>
-        </div>
-
-        <!-- Search Bar -->
-        <div class="shop-search-bar" :class="{ 'mobile-visible': isSearchOpen }">
-          <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
-          <input 
-            v-model="localSearchQuery" 
-            type="text" 
-            :placeholder="currentLang === 'id' ? 'Cari merchandise...' : 'Search merchandise...'" 
-            class="shop-search-input"
-          />
-        </div>
+        </nav>
       </div>
 
       <!-- Empty State -->
@@ -42,65 +28,49 @@
         <p class="no-results-text">{{ currentLang === 'id' ? 'Tidak ada produk yang cocok.' : 'No products match.' }}</p>
       </div>
 
-      <!-- Product Grid (4x3 Grid layout on desktop) -->
+      <!-- Product Grid (same card as homepage) -->
       <div v-else class="shop-products-grid">
         <div 
           v-for="product in filteredProducts" 
           :key="product.id" 
           class="product-card"
-          @click="handleCardClick(product, $event)"
+          @click="handleCardClick(product)"
         >
-          <!-- Product image container -->
           <div class="product-image-container">
-            <div class="badges-container" style="position: absolute; top: 8px; left: 8px; display: flex; flex-direction: column; gap: 4px; z-index: 3; align-items: flex-start;">
-              <div v-if="product.is_promo" class="promo-badge" style="background-color: #c94b4b; color: #fff; font-family: var(--font-body); font-size: 0.65rem; font-weight: 700; padding: 4px 8px; border-radius: 4px; letter-spacing: 0.5px; text-transform: uppercase;">
+            <div class="badges-container">
+              <div v-if="product.is_promo || discountPercent(product) > 0" class="status-badge status-promo">
                 {{ product.promo_title || 'PROMO' }}
               </div>
-              <div v-if="product.is_preorder" class="preorder-badge" style="position: static;">PREORDER</div>
+              <div v-if="product.is_preorder" class="status-badge">PRE-ORDER</div>
             </div>
+            <div v-if="discountPercent(product) > 0" class="discount-badge">-{{ discountPercent(product) }}%</div>
             <img :src="product.image" :alt="product.titleEn" class="product-image" />
-            <!-- Centered View Details Overlay Button -->
-            <div class="product-card-overlay">
-              <button class="view-details-btn" @click.stop="openModal(product)">
-                {{ t('viewDetails') }}
-              </button>
-            </div>
+            <!-- Light sweep shine on hover (replaces the old View Details button) -->
+            <div class="product-card-shine" aria-hidden="true"></div>
           </div>
 
-          <!-- Product Details Info Row -->
-          <div class="product-info-wrapper">
-            <!-- Name -->
+          <div class="product-info">
             <h3 class="product-title">{{ getProductTitle(product) }}</h3>
-            
-            <!-- Price (aligned right, below name) -->
-            <div class="product-price-row" style="flex-direction: column; align-items: flex-end; gap: 2px;">
-              <span class="product-price">{{ formatPrice(product.original_price) }}</span>
-              <span v-if="product.is_promo" class="product-original-price" style="text-decoration: line-through; color: #c94b4b; font-size: 0.7rem; font-weight: 500;">{{ formatPrice(product.promo_price) }}</span>
+            <div class="product-price-row">
+              <template v-if="discountPercent(product) > 0">
+                <span class="product-price is-discount">{{ formatPrice(discountedPrice(product)) }}</span>
+                <span class="product-original-price">{{ formatPrice(product.original_price) }}</span>
+              </template>
+              <template v-else>
+                <span class="product-price">{{ formatPrice(product.original_price) }}</span>
+              </template>
             </div>
-            
-
-            <!-- Compact Quantity Selector (aligned right, below colors) -->
-            <div class="product-actions-row">
-              <div class="card-qty-selector">
-                <button 
-                  class="card-qty-btn" 
-                  @click.stop="changeQty(product, selectedColors[product.id], -1)" 
-                  :disabled="getProductTotal(product.id) === 0"
-                  aria-label="Decrease quantity"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-icon"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                </button>
-                <span class="card-qty-value" :class="{ 'is-zero': getProductTotal(product.id) === 0 }">
-                  {{ getProductTotal(product.id) }}
-                </span>
-                <button 
-                  class="card-qty-btn" 
-                  @click.stop="changeQty(product, selectedColors[product.id], 1)"
-                  aria-label="Increase quantity"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-icon"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                </button>
-              </div>
+            <div v-if="product.rating" class="product-meta">
+              <span class="meta-rating">
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"/></svg>
+                {{ product.rating.toFixed(1) }}
+              </span>
+              <span class="meta-dot">•</span>
+              <span>{{ formatSold(product.total_sold) }} Sold</span>
+            </div>
+            <div v-if="product.store_name" class="product-location">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              {{ product.store_name }}
             </div>
           </div>
 
@@ -110,10 +80,10 @@
           <!-- Creator Section -->
           <div class="card-creator-section" @click.stop="openCreator(product.creator)">
             <div class="creator-avatar-wrapper">
-              <img :src="product.creator?.image_url || '/logo_mocca.png'" :alt="product.creator?.name" class="creator-avatar" />
+              <img :src="product.creator?.image_url || '/logo/logo.webp'" :alt="product.creator?.name" class="creator-avatar" />
             </div>
             <div class="creator-info">
-              <span class="creator-label">{{ product.creator?.creator_title || 'Official Store' }}</span>
+              <span class="creator-label">Provided by</span>
               <div class="creator-name-wrapper" style="display: flex; align-items: center; gap: 4px;">
                 <span class="creator-name">{{ product.creator?.name || 'Loading...' }}</span>
                 <svg v-if="product.creator?.is_verified == 1" width="14" height="14" viewBox="0 0 24 24" fill="#3b82f6" stroke="none" xmlns="http://www.w3.org/2000/svg">
@@ -125,33 +95,12 @@
         </div>
       </div>
     </div>
-
-    <!-- Product Details Modal Window Overlay -->
-    <ProductModal 
-      v-if="activeModalProduct" 
-      :isOpen="isModalOpen" 
-      :product="activeModalProduct" 
-      @close="closeModal" 
-    />
   </div>
-  <VariantSelectModal 
-      v-if="activeVariantProduct" 
-      :isOpen="isVariantModalOpen" 
-      :product="activeVariantProduct" 
-      @close="closeVariantModal" 
-    />
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue';
-import ProductModal from './ProductModal.vue';
-import VariantSelectModal from './VariantSelectModal.vue';
-import { addToCart, updateQuantity, getItemQuantity, getProductTotalQuantity, decreaseProductQuantity, currentLang, isSearchOpen, searchQuery, currentPage, activeCreatorSlug, activeCategory } from '../store/cart.js';
-
-const isModalOpen = ref(false);
-const activeModalProduct = ref(null);
-
-const localSearchQuery = ref(searchQuery.value);
+import { ref, computed, onMounted } from 'vue';
+import { currentLang, searchQuery, currentPage, activeCreatorSlug, activeCategory, openProduct } from '../store/cart.js';
 
 const openCreator = (creator) => {
   if (creator) {
@@ -159,14 +108,6 @@ const openCreator = (creator) => {
   }
   currentPage.value = 'creator';
 };
-
-watch(searchQuery, (newVal) => {
-  localSearchQuery.value = newVal;
-});
-
-watch(localSearchQuery, (newVal) => {
-  searchQuery.value = newVal;
-});
 
 const categories = [
   { id: 'all', nameId: 'Semua', nameEn: 'All' },
@@ -176,33 +117,12 @@ const categories = [
   { id: 'bundles', nameId: 'Bundling', nameEn: 'Bundles' }
 ];
 
-const openModal = (product) => {
-  activeModalProduct.value = product;
-  isModalOpen.value = true;
-};
+const openModal = (product) => openProduct(product);
 
-const closeModal = () => {
-  isModalOpen.value = false;
-};
-
-const handleCardClick = (product, event) => {
-  // Prevent modal opening when clicking on quantity selector or swatches
-  if (
-    event.target.closest('.card-qty-selector') || 
-    event.target.closest('.color-swatches') || 
-    event.target.closest('.swatch') ||
-    event.target.closest('.card-qty-btn')
-  ) {
-    return;
-  }
-  openModal(product);
-};
+const handleCardClick = (product) => openModal(product);
 
 // Reactive products list
 const products = ref([]);
-
-// Swatch selection state for each item
-const selectedColors = ref({});
 
 const fetchProducts = async () => {
   try {
@@ -279,28 +199,28 @@ const fetchProducts = async () => {
           price: finalPrice,
           original_price: price,
           promo_price: promoPrice,
+          discount: p.discount,
           is_promo: isPromo,
           promo_title: promoTitle,
           variant_id: variantId,
-          image: images?.[0]?.image_url || '/mocca_group_tee.png',
+          image: images?.[0]?.image_url || '/slider/slider1.png',
           colors: ['cream'],
           creator: { 
             id: p.creator?.id,
             slug: p.creator?.slug_url || p.creator?.slug,
-            name: p.creator?.name || 'My Diary Records', 
+            name: p.creator?.name || 'bereanid', 
             is_verified: p.creator?.is_verified,
-            image_url: p.creator?.image_url || '/logo_mocca.png',
+            image_url: p.creator?.image_url || '/logo/logo.webp',
             avatarInitial: p.creator?.name?.[0] || 'M',
             creator_title: 'Official Store'
           },
           has_store_location: p.has_store_location,
+          store_name: p.has_store_location?.store_name || null,
+          rating: p.average_star ? parseFloat(String(p.average_star).replace(',', '.')) : null,
+          total_sold: p.total_sold || 0,
           admin_fee: p.admin_fee || 0,
           is_preorder: checkPreorderActive(p)
         };
-      });
-      
-      data.forEach(p => {
-        selectedColors.value[p.id] = 'cream';
       });
     }
   } catch (error) {
@@ -317,8 +237,8 @@ const filteredProducts = computed(() => {
   if (activeCategory.value !== 'all') {
     result = result.filter(p => p.category === activeCategory.value);
   }
-  if (localSearchQuery.value) {
-    const q = localSearchQuery.value.toLowerCase();
+  if (searchQuery.value) {
+    const q = searchQuery.value.toLowerCase();
     result = result.filter(p => 
       p.titleEn.toLowerCase().includes(q) || 
       p.titleId.toLowerCase().includes(q)
@@ -331,27 +251,30 @@ const getProductTitle = (product) => {
   return currentLang.value === 'id' ? product.titleId : product.titleEn;
 };
 
-// Quantity handlers
-const getProductTotal = (productId) => { return getProductTotalQuantity(productId); };
-
-const isVariantModalOpen = ref(false);
-const activeVariantProduct = ref(null);
-
-const openVariantModal = (product) => {
-  activeVariantProduct.value = product;
-  isVariantModalOpen.value = true;
-};
-
-const closeVariantModal = () => {
-  isVariantModalOpen.value = false;
-};
-
-const changeQty = (product, color, delta) => {
-  if (delta > 0) {
-    openVariantModal(product);
-  } else {
-    decreaseProductQuantity(product.id);
+const discountPercent = (p) => {
+  const base = Number(p?.original_price) || 0;
+  const discPrice = Number(p?.promo_price) || 0;
+  if (base && discPrice && discPrice < base) {
+    return Math.round(((base - discPrice) / base) * 100);
   }
+  const d = Number(p?.discount) || 0;
+  if (d > 0 && d <= 100 && base) return Math.round(d);
+  return 0;
+};
+
+const discountedPrice = (p) => {
+  const discPrice = Number(p?.promo_price) || 0;
+  const base = Number(p?.original_price) || 0;
+  if (base && discPrice && discPrice < base) return discPrice;
+  const d = Number(p?.discount) || 0;
+  if (d > 0 && d <= 100 && base) return Math.round(base * (1 - d / 100));
+  return base;
+};
+
+const formatSold = (n) => {
+  if (!n) return '0';
+  if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1).replace(/\.0$/, '')}rb+`;
+  return `${n}+`;
 };
 
 const formatPrice = (price) => {
@@ -382,16 +305,16 @@ const t = (key) => {
 
 <style scoped>
 .shop-page-wrapper {
-  background-color: #F5F2ED; /* Warm minimalist cream backdrop */
+  background-color: #fff; /* Pure white background */
   width: 100%;
   min-height: 100vh;
   transition: var(--transition-smooth);
 }
 
 .shop-page-container {
-    max-width: 1440px;
+    max-width: 1600px;
     margin: 0 auto;
-    padding: 3rem 4rem 6rem 4rem;
+    padding: 1.25rem 3rem 6rem 3rem;
   }
 
 /* Beautiful Title styling in elegant serif typography */
@@ -432,79 +355,59 @@ const t = (key) => {
   transform: translateY(-1px);
 }
 
-/* Controls: Filters & Search */
+/* Controls: filter-bar (same underline style as homepage) */
 .shop-controls {
   display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  flex-wrap: wrap;
+  justify-content: center;
   width: 100%;
-  align-items: center;
-  margin-bottom: 3rem;
-  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1); /* divider between filtering and cards */
 }
 
 .category-filters {
   display: flex;
-  gap: 0.75rem;
+  justify-content: center;
+  gap: 2.5rem;
   flex-wrap: wrap;
-  justify-content: flex-start;
-  flex: 1 1 auto;
 }
 
 .filter-btn {
-  background: transparent;
-  border: 1px solid rgba(47, 78, 62, 0.15);
-  border-radius: 8px;
-  padding: 0.45rem 1.35rem;
-  font-family: var(--font-body);
-  font-size: 0.85rem;
-  color: var(--color-mocca-dark);
+  position: relative;
+  padding: 0.4rem 0;
+  border: 0;
+  background: none;
   cursor: pointer;
-  transition: var(--transition-smooth);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  color: var(--color-mocca-muted);
+  transition: color 200ms ease;
 }
 
-.filter-btn:hover {
-  border-color: var(--color-mocca-dark);
+.filter-btn::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 2px;
+  background: var(--color-mocca-dark);
+  transform: scaleX(0);
+  transition: transform 250ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .filter-btn.active {
-  background-color: var(--color-mocca-dark);
-  color: var(--color-bg-light);
-  border-color: var(--color-mocca-dark);
-}
-
-.shop-search-bar {
-  position: relative;
-  display: flex;
-  align-items: center;
-  width: 100%;
-  max-width: 450px;
-  flex: 1 1 250px;
-}
-
-.search-icon {
-  position: absolute;
-  left: 1.25rem;
-  color: var(--color-mocca-muted);
-}
-
-.shop-search-input {
-  width: 100%;
-  padding: 0.85rem 1.25rem 0.85rem 3rem;
-  border: 1px solid rgba(47, 78, 62, 0.15);
-  border-radius: 25px;
-  background-color: var(--color-bg-light);
-  font-family: var(--font-body);
-  font-size: 0.95rem;
   color: var(--color-mocca-dark);
-  outline: none;
-  transition: var(--transition-smooth);
+  font-weight: 600;
 }
 
-.shop-search-input:focus {
-  border-color: var(--color-mocca-dark);
-  box-shadow: 0 0 0 3px rgba(47, 78, 62, 0.05);
+.filter-btn.active::after {
+  transform: scaleX(1);
+}
+
+.filter-btn:focus-visible {
+  outline: 2px solid var(--color-mocca-dark);
+  outline-offset: 3px;
 }
 
 /* Empty State */
@@ -513,7 +416,7 @@ const t = (key) => {
   flex-direction: column;
   align-items: center;
   padding: 4rem 2rem;
-  background-color: var(--color-bg-light);
+  background-color: #fff;
   border-radius: 12px;
   border: 1px dashed var(--color-mocca-border);
   text-align: center;
@@ -538,51 +441,101 @@ const t = (key) => {
 /* Grid Layout: 4 Columns on Desktop */
 .shop-products-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.85rem; /* Slightly tighter gap for smaller cards */
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.85rem;
 }
 
-/* Clean, thin outline product card */
+/* Same card look as homepage */
 .product-card {
-  background-color: var(--color-bg-light);
-  border: 1px solid rgba(47, 78, 62, 0.12); /* Thin chocolate outline */
-  border-radius: 8px;
-  overflow: hidden;
+  background: none;
+  border: none;
+  border-radius: 0;
+  overflow: visible;
   display: flex;
   flex-direction: column;
+  height: 100%;
+  min-width: 0;
   cursor: pointer;
-  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 4px 15px rgba(47, 78, 62, 0.02);
+  transition: var(--transition-smooth);
+  box-shadow: none;
 }
 
 .product-card:hover {
-  transform: translateY(-5px);
-  border-color: var(--color-mocca-dark); /* Accent brown outline on hover */
-  box-shadow: 0 12px 30px rgba(47, 78, 62, 0.06);
+  transform: none;
+  box-shadow: none;
 }
 
 /* High-quality lifestyle photography showcase */
 .product-image-container {
   width: 100%;
   aspect-ratio: 1 / 1;
-  background-color: #FAF8F5;
-  overflow: hidden;
+  height: auto;
   position: relative;
-  border-bottom: 1px solid rgba(47, 78, 62, 0.06);
+  border-radius: 12px;
+  background-color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
 }
 
 .product-image {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.5s ease;
+  border-radius: 12px;
+  transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-.preorder-badge {
+.badges-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 3;
+  align-items: flex-start;
+}
+
+.status-badge {
+  background-color: #111;
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  padding: 0.3rem 0.7rem 0.3rem 0.6rem;
+  border-radius: 0 0 8px 0;
+}
+
+.status-promo {
+  background-color: #c94b4b;
+}
+
+.discount-badge {
   position: absolute;
   top: 8px;
   right: 8px;
-  background-color: var(--color-mocca-dark);
+  z-index: 3;
+  background-color: #d32f2f;
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  line-height: 1;
+  box-shadow: 0 2px 8px rgba(211, 47, 47, 0.35);
+}
+
+.preorder-badge {
+  position: static;
+  background-color: #111;
   color: #fff;
   font-family: var(--font-body);
   font-size: 0.65rem;
@@ -593,127 +546,101 @@ const t = (key) => {
   letter-spacing: 0.5px;
 }
 
-.product-card:hover .product-image {
-  transform: scale(1.04);
+@media (hover: hover) and (pointer: fine) {
+  .product-card:hover .product-image {
+    transform: scale(1.06);
+  }
 }
 
-/* Hover Details Overlay Button */
-.product-card-overlay {
+/* Hover shine sweep (replaces the old View Details button) */
+.product-card-shine {
   position: absolute;
-  top: 0;
+  top: -10%;
+  bottom: -10%;
   left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(47, 78, 62, 0.25);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-    justify-content: center;
-  opacity: 0;
-  transition: var(--transition-smooth);
+  width: 55%;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.25) 35%,
+    rgba(255, 255, 255, 0.9) 50%,
+    rgba(255, 255, 255, 0.25) 65%,
+    transparent 100%
+  );
+  transform: translateX(-180%) skewX(-12deg);
+  transition: transform 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
   z-index: 2;
+  pointer-events: none;
 }
 
-.product-card:hover .product-card-overlay {
-  opacity: 1;
+.product-card:hover .product-card-shine {
+  transform: translateX(280%) skewX(-12deg);
 }
 
-.view-details-btn {
-  background-color: var(--color-bg-light);
-  color: var(--color-mocca-dark);
-  border: 1px solid var(--color-mocca-dark);
-  font-family: var(--font-body);
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 0.5rem 1.1rem;
-  border-radius: 20px;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(47, 78, 62, 0.1);
-  transform: translateY(10px);
-  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.product-card:hover .view-details-btn {
-  transform: translateY(0);
-}
-
-.view-details-btn:hover {
-  background-color: var(--color-mocca-dark);
-  color: var(--color-bg-light);
-}
-
-/* Card details styling - customized for 4 column smaller layout */
-.product-info-wrapper {
-  padding: 0.85rem;
+/* Card details — same as homepage */
+.product-info {
+  padding: 0.35rem 0.25rem 0.25rem;
   display: flex;
   flex-direction: column;
   flex-grow: 1;
+  gap: 0.1rem;
 }
 
 .product-title {
   font-family: var(--font-body);
-  font-size: 0.9rem; /* Smaller font for smaller card */
-  font-weight: 500;
-  color: var(--color-mocca-dark);
-  margin-bottom: 0.2rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #111;
+  line-height: 1.25;
+  margin: 0;
+  min-height: 2.4rem; /* Two lines reserved so every card has the same height */
 }
 
-/* Price below title, right aligned */
+/* Price below title */
 .product-price-row {
   display: flex;
-  justify-content: flex-end;
-  margin-bottom: 0.35rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  margin-top: 0.05rem;
 }
 
 .product-price {
   font-family: var(--font-body);
-  font-size: 0.9rem;
-  font-weight: 600; /* Semi-bold */
-  color: var(--color-mocca-dark);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #111;
+  white-space: nowrap;
+  margin: 0;
 }
 
-/* Colors left aligned */
-.product-colors-row {
-  display: flex;
-  margin-bottom: 0.45rem;
+.product-price.is-discount {
+  color: #d32f2f;
 }
 
-.color-swatches {
-  display: flex;
-  gap: 0.35rem;
-}
-
-.swatch {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  cursor: pointer;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  transition: var(--transition-smooth);
-  position: relative;
-}
-
-.swatch:hover {
-  transform: scale(1.15);
-}
-
-.swatch.active {
-  box-shadow: 0 0 0 2px var(--color-mocca-dark);
+.product-original-price {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: #9a9a9a;
+  text-decoration: line-through;
 }
 
 /* Creator & Divider Section styling */
 .card-divider {
   height: 1px;
-  background-color: var(--color-mocca-border);
   width: 100%;
+  border-top: 1px dashed rgba(0, 0, 0, 0.12);
+  background-color: transparent;
+  margin: 0.15rem 0 0;
 }
 
 .card-creator-section {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.6rem 0.85rem;
-  background-color: var(--color-bg-light);
+  gap: 0.4rem;
+  padding: 0.25rem 0.25rem 0;
+  background-color: transparent;
 }
 
 .creator-avatar-wrapper {
@@ -723,147 +650,209 @@ const t = (key) => {
 }
 
 .creator-avatar {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   object-fit: cover;
-  border: 1px solid var(--color-mocca-border);
+  border: none;
   display: block;
+  flex-shrink: 0;
 }
 
 .creator-info {
   display: flex;
   flex-direction: column;
   line-height: 1.25;
+  min-width: 0;
 }
 
 .creator-label {
-    font-family: var(--font-body);
-    font-size: 0.55rem;
+  font-family: var(--font-body);
+  font-size: 0.55rem;
   color: var(--color-mocca-muted);
 }
 
 .creator-name {
-    font-family: var(--font-body);
-    font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--color-mocca-dark);
-}
-
-/* Qty button below colors, right aligned */
-.product-actions-row {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: auto;
-}
-
-/* Swatch Color Hex codes */
-.swatch-cream { background-color: #FDFBF7; }
-.swatch-black { background-color: #212121; }
-.swatch-green { background-color: #2D4C3A; }
-.swatch-beige { background-color: #E6DCD2; }
-
-/* Quantity Selector Component */
-.card-qty-selector {
-  display: inline-flex;
-  align-items: center;
-  border-radius: 8px;
-  overflow: hidden;
-  background-color: var(--color-mocca-dark);
-  height: 32px; /* Slightly taller for better touch target */
-}
-
-.card-qty-btn {
-  background: none;
-  border: none;
-  padding: 0 0.65rem;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  color: #FFFFFF;
-  cursor: pointer;
-  opacity: 0.8;
-  transition: var(--transition-smooth);
-}
-
-.card-qty-btn:hover:not(:disabled) {
-  opacity: 1;
-  background-color: rgba(255, 255, 255, 0.12);
-}
-
-.card-qty-btn:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
-
-.btn-icon {
-  width: 12px;
-  height: 12px;
-}
-
-.card-qty-value {
   font-family: var(--font-body);
   font-size: 0.85rem;
-  font-weight: 500;
-  color: #FFFFFF;
-  min-width: 1.5rem;
-  text-align: center;
-  transition: color 0.3s ease;
+  font-weight: 700;
+  color: var(--color-mocca-dark);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.card-qty-value.is-zero {
-  color: rgba(255, 255, 255, 0.6);
+/* Meta + location — same as homepage */
+.product-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  color: var(--color-mocca-muted);
+  margin-top: 0.15rem;
+}
+
+.meta-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  color: #111;
+  font-weight: 600;
+}
+
+.meta-rating svg {
+  width: 13px;
+  height: 13px;
+  color: #f5a524;
+}
+
+.meta-dot {
+  opacity: 0.5;
+}
+
+.product-location {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  color: var(--color-mocca-muted);
+  margin-top: 0.1rem;
+}
+
+.product-location svg {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .product-card:hover .product-image {
+    transform: scale(1.06);
+  }
 }
 
 
 /* Responsive adjustments */
 @media (max-width: 1200px) {
+  .shop-page-container {
+    padding: 1.25rem 2rem 4rem 2rem;
+  }
   .shop-products-grid {
-    grid-template-columns: repeat(3, 1fr); /* 3 Columns */
+    grid-template-columns: repeat(3, minmax(0, 1fr)); /* 3 Columns */
+    gap: 1rem;
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1024px) {
   .shop-products-grid {
-    grid-template-columns: repeat(2, 1fr); /* 2 Columns */
-  }
-  .product-card-overlay {
-    display: none !important; /* Mobile disables hover details overlay */
+    grid-template-columns: repeat(2, minmax(0, 1fr)); /* 2 Columns */
+    gap: 1rem;
   }
   .shop-controls {
-    flex-direction: column;
-    align-items: stretch;
+    margin-bottom: 1.25rem;
+    padding-bottom: 1rem;
   }
   .category-filters {
-    justify-content: center;
-    flex: none;
+    justify-content: flex-start;
+    gap: 1.25rem;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 0.25rem;
   }
-  .shop-search-bar {
-    max-width: 100%;
-    flex: none;
+  .filter-btn {
+    flex-shrink: 0;
   }
 }
 
 @media (max-width: 768px) {
-  .shop-search-bar {
+  .shop-page-container {
+    padding: 1rem 1.25rem 3rem 1.25rem;
+  }
+  .shop-controls {
+    margin-bottom: 1.25rem;
+    padding-bottom: 1rem;
+    position: sticky;
+    top: 64px;
+    z-index: 500;
+    background-color: #fff;
+    padding-top: 0.5rem;
+  }
+  .category-filters {
+    gap: 1.25rem;
+  }
+  .filter-btn {
+    font-size: 0.85rem;
+  }
+  .shop-products-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+    overflow: visible;
+    padding-bottom: 0;
+  }
+  .shop-products-grid::-webkit-scrollbar {
     display: none;
   }
-  .shop-search-bar.mobile-visible {
-    display: flex;
+  .shop-products-grid .product-card {
+    flex: none;
+    scroll-snap-align: unset;
+  }
+  .product-info {
+    padding: 0.45rem 0.15rem 0.25rem;
+    gap: 0.15rem;
+  }
+
+  .product-title {
+    font-size: 0.95rem;
+    line-height: 1.3;
+    min-height: unset;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .product-price {
+    font-size: 0.95rem;
+  }
+
+  .product-original-price {
+    font-size: 0.75rem;
+  }
+
+  .product-meta,
+  .product-location {
+    font-size: 0.72rem;
+  }
+  .discount-badge {
+    font-size: 0.62rem;
+    padding: 0.2rem 0.4rem;
+    top: 6px;
+    right: 6px;
+  }
+  .status-badge {
+    font-size: 0.6rem;
+    padding: 0.25rem 0.55rem 0.25rem 0.5rem;
+  }
+  .card-divider {
+    margin: 0.12rem 0 0;
   }
   .card-creator-section {
-    padding: 0.75rem;
-    gap: 0.5rem;
+    gap: 0.4rem;
+    padding: 0.2rem 0.1rem 0;
+    background-color: transparent;
   }
   .creator-avatar {
-    width: 30px;
-    height: 30px;
+    width: 28px;
+    height: 28px;
   }
   .creator-label {
     font-size: 0.45rem;
   }
   .creator-name {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
   }
   .creator-info {
     display: flex;
@@ -872,45 +861,58 @@ const t = (key) => {
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 480px) {
   .shop-page-container {
-    padding: 2.25rem 1.25rem 4rem 1.25rem;
+    padding: 0.85rem 1rem 3rem 1rem;
   }
   .shop-main-title {
-    font-size: 2.2rem;
+    font-size: 2rem;
   }
   .shop-title-section {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.25rem;
   }
   .shop-controls {
-    margin-bottom: 2rem;
-    gap: 1rem;
-    align-items: center;
-  }
-  .category-filters {
-    right: 0;
-    width: 100vw;
-    margin-left: -1.25rem;
-    padding: 0 1.25rem;
-    overflow-x: auto;
-    flex-wrap: nowrap;
-    justify-content: flex-start;
-    -webkit-overflow-scrolling: touch;
-  }
-  .category-filters::-webkit-scrollbar {
-    display: none;
-  }
-  .filter-btn {
-    padding: 0.35rem 1rem;
-    font-size: 0.8rem;
-    white-space: nowrap;
-  }
-  .shop-search-bar {
-    max-width: 90%;
-    margin: 0 auto;
+    margin-bottom: 1rem;
+    padding-bottom: 0.85rem;
+    position: sticky;
+    top: 64px;
+    z-index: 500;
+    background-color: #fff;
+    padding-top: 0.5rem;
   }
   .shop-products-grid {
-    grid-template-columns: 1fr; /* 1 Column */
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.65rem;
+    overflow: visible;
+    padding-bottom: 0;
+  }
+  .shop-products-grid::-webkit-scrollbar {
+    display: none;
+  }
+  .shop-products-grid .product-card {
+    flex: none;
+    scroll-snap-align: unset;
+  }
+  .product-title {
+    font-size: 0.9rem;
+    line-height: 1.3;
+    min-height: unset;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .product-price {
+    font-size: 0.9rem;
+  }
+  .creator-name {
+    font-size: 0.75rem;
+  }
+  .filter-btn {
+    flex-shrink: 0;
+    font-size: 0.8rem;
+    white-space: nowrap;
   }
 }
 </style>

@@ -5,54 +5,21 @@
         <!-- Home / Beranda -->
         <button 
           class="nav-item" 
-          :class="{ active: currentPage === 'home' && activeSection === 'home' }" 
+          :class="{ active: currentPage === 'home' }" 
           @click="navigateTo('home')"
           aria-label="Home"
         >
           <span class="active-indicator"></span>
-          <img class="nav-icon" src="/mobileNavbar/home.png" alt="Home" width="28" height="28" />
+          <img class="nav-icon" src="/logo/home.webp" alt="Home" width="48" height="48" />
           <span class="nav-label">{{ currentLang === 'id' ? 'Beranda' : 'Home' }}</span>
         </button>
 
-        <!-- Collections / Koleksi -->
-        <button 
-          class="nav-item" 
-          :class="{ active: currentPage === 'home' && activeSection === 'collections' }" 
-          @click="navigateTo('collections')"
-          aria-label="Collections"
-        >
-          <span class="active-indicator"></span>
-          <svg class="nav-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-            <line x1="3" y1="9" x2="21" y2="9"></line>
-            <line x1="9" y1="21" x2="9" y2="9"></line>
-          </svg>
-          <span class="nav-label">{{ currentLang === 'id' ? 'Koleksi' : 'Collections' }}</span>
-        </button>
-
-        <!-- Event -->
-        <button 
-          class="nav-item" 
-          :class="{ active: currentPage === 'event' }" 
-          @click="navigateTo('event')"
-          aria-label="Event"
-        >
-          <span class="active-indicator"></span>
-          <svg class="nav-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-            <line x1="16" y1="2" x2="16" y2="6"></line>
-            <line x1="8" y1="2" x2="8" y2="6"></line>
-            <line x1="3" y1="10" x2="21" y2="10"></line>
-          </svg>
-          <span class="nav-label">{{ currentLang === 'id' ? 'Event' : 'Event' }}</span>
-        </button>
-
-        <!-- Shop / Toko -->
+        <!-- Shop / Product -->
         <button 
           class="nav-item" 
           :class="{ active: currentPage === 'shop' && !isSearchOpen }" 
           @click="navigateTo('shop')"
-          aria-label="Shop"
+          aria-label="Product"
         >
           <span class="active-indicator"></span>
           <svg class="nav-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -60,7 +27,7 @@
             <line x1="3" y1="6" x2="21" y2="6"></line>
             <path d="M16 10a4 4 0 0 1-8 0"></path>
           </svg>
-          <span class="nav-label">{{ currentLang === 'id' ? 'Toko' : 'Shop' }}</span>
+          <span class="nav-label">Product</span>
         </button>
 
         <!-- Search / Cari -->
@@ -77,90 +44,41 @@
           </svg>
           <span class="nav-label">{{ currentLang === 'id' ? 'Cari' : 'Search' }}</span>
         </button>
+
+        <!-- Profile -->
+        <button
+          class="nav-item"
+          :class="{ active: currentPage === 'profile' || currentPage === 'dashboard-user' || currentPage === 'login' }"
+          @click="goProfile"
+          aria-label="Profile"
+        >
+          <span class="active-indicator"></span>
+          <svg class="nav-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <span class="nav-label">{{ currentLang === 'id' ? 'Profil' : 'Profile' }}</span>
+        </button>
       </div>
     </div>
   </Transition>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue';
-import { currentPage, currentLang, isSearchOpen, isCartOpen, totalItems, isMobileMenuOpen, triggerProfile } from '../store/cart.js';
-
-const activeSection = ref('home');
-
-const updateActiveSectionOnScroll = () => {
-  if (currentPage.value === 'shop' || currentPage.value === 'checkout' || currentPage.value === 'payment') {
-    activeSection.value = 'shop';
-    return;
-  }
-  if (currentPage.value === 'event') {
-    activeSection.value = 'event';
-    return;
-  }
-  if (currentPage.value !== 'home') {
-    activeSection.value = '';
-    return;
-  }
-  
-  const collectionsEl = document.querySelector('.collections-container');
-  if (!collectionsEl) {
-    activeSection.value = 'home';
-    return;
-  }
-  
-  const rect = collectionsEl.getBoundingClientRect();
-  if (rect.top <= window.innerHeight * 0.45) {
-    activeSection.value = 'collections';
-  } else {
-    activeSection.value = 'home';
-  }
-};
-
-watch(currentPage, (val) => {
-  if (val === 'shop' || val === 'checkout' || val === 'payment') {
-    activeSection.value = 'shop';
-  } else if (val === 'event') {
-    activeSection.value = 'event';
-  } else if (val === 'home') {
-    nextTick(() => {
-      updateActiveSectionOnScroll();
-    });
-  } else {
-    activeSection.value = '';
-  }
-}, { immediate: true });
-
-onMounted(() => {
-  window.addEventListener('scroll', updateActiveSectionOnScroll, { passive: true });
-  updateActiveSectionOnScroll();
-});
-
-onUnmounted(() => {
-  window.removeEventListener('scroll', updateActiveSectionOnScroll);
-});
+import { currentPage, currentLang, isSearchOpen, isCartOpen, totalItems, isMobileMenuOpen, triggerProfile, isLoggedIn } from '../store/cart.js';
 
 const navigateTo = (page) => {
-  if (page === 'collections') {
-    const scrollToCollections = () => {
-      const collectionsEl = document.querySelector('.collections-container');
-      if (collectionsEl) {
-        const yOffset = -90;
-        const y = collectionsEl.getBoundingClientRect().top + window.pageYOffset + yOffset;
-        window.scrollTo({ top: y, behavior: 'smooth' });
-      }
-    };
-    if (currentPage.value !== 'home') {
-      currentPage.value = 'home';
-      setTimeout(scrollToCollections, 150);
-    } else {
-      scrollToCollections();
-    }
-    isSearchOpen.value = false;
-    return;
-  }
-
   currentPage.value = page;
   isSearchOpen.value = false;
+};
+
+const goProfile = () => {
+  isSearchOpen.value = false;
+  if (isLoggedIn.value) {
+    currentPage.value = 'dashboard-user';
+  } else {
+    triggerProfile.value = true;
+  }
 };
 
 const toggleSearchInput = () => {
@@ -231,14 +149,26 @@ const toggleSearchInput = () => {
 .nav-icon {
   color: var(--color-mocca-muted);
   transition: transform 0.25s ease, color 0.25s ease;
-  margin-bottom: 0.25rem;
 }
 
 img.nav-icon {
-  width: 28px;
-  height: 28px;
+  width: 48px;
+  height: 48px;
   object-fit: contain;
-  display: inline-block;
+  display: block;
+  flex-shrink: 0;
+  margin-bottom: 0.25rem;
+}
+
+svg.nav-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  display: block;
+  flex-shrink: 0;
+  /* Samakan tinggi box ikon 48px agar label sejajar */
+  margin-top: 12px;
+  margin-bottom: calc(0.25rem + 12px);
 }
 
 .nav-item.active .nav-icon {
