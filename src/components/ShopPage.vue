@@ -29,7 +29,7 @@
       </div>
 
       <!-- Product Grid (same card as homepage) -->
-      <div v-else class="shop-products-grid">
+      <div v-else class="shop-products-grid" :class="{ 'is-loading': isLoading }">
         <div 
           v-for="product in filteredProducts" 
           :key="product.id" 
@@ -94,12 +94,50 @@
           </div>
         </div>
       </div>
+
+      <!-- Pagination (bottom) -->
+      <nav
+        v-if="!isSearchMode && totalPages > 1 && filteredProducts.length > 0"
+        class="pagination-container"
+        aria-label="Pagination"
+      >
+        <button
+          class="pagination-arrow"
+          :disabled="currentPageNum <= 1 || isLoading"
+          @click="goToPage(currentPageNum - 1)"
+          aria-label="Halaman sebelumnya"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </button>
+
+        <template v-for="(p, idx) in paginationPages" :key="`${p}-${idx}`">
+          <span v-if="p === '...'" class="pagination-ellipsis">&hellip;</span>
+          <button
+            v-else
+            class="pagination-num"
+            :class="{ active: p === currentPageNum }"
+            :disabled="isLoading"
+            @click="goToPage(p)"
+          >
+            {{ p }}
+          </button>
+        </template>
+
+        <button
+          class="pagination-arrow"
+          :disabled="currentPageNum >= totalPages || isLoading"
+          @click="goToPage(currentPageNum + 1)"
+          aria-label="Halaman berikutnya"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+      </nav>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { currentLang, searchQuery, currentPage, activeCreatorSlug, activeCategory, openProduct } from '../store/cart.js';
 
 const openCreator = (creator) => {
@@ -123,14 +161,60 @@ const handleCardClick = (product) => openModal(product);
 
 // Reactive products list
 const products = ref([]);
+const currentPageNum = ref(1);
+const totalPages = ref(1);
+const isLoading = ref(false);
+const isSearchMode = ref(false);
+let fetchSeq = 0;
 
-const fetchProducts = async () => {
+const isImageFileUrl = (url) => !!url && /\.(png|jpe?g|webp|gif|svg|avif)(\?.*)?$/i.test(url);
+
+const buildApiUrl = (page = 1, perPage = null) => {
+  const apiUrl = import.meta.env.VITE_API_URL || 'https://api.kolektix.com';
+  const params = new URLSearchParams({ page: String(page) });
+  if (perPage) params.set('per_page', String(perPage));
+  return `${apiUrl}/api/creator-maping-product/berean.id?${params.toString()}`;
+};
+
+const fetchProductPages = async () => {
+  const firstJson = await fetch(buildApiUrl(1, 100)).then(res => res.json());
+  const lastPage = firstJson.products?.last_page || 1;
+  let allData = firstJson.products?.data || [];
+
+  if (lastPage > 1) {
+    const restJson = await Promise.all(
+      Array.from({ length: lastPage - 1 }, (_, i) => fetch(buildApiUrl(i + 2, 100)).then(res => res.json()))
+    );
+    restJson.forEach(json => {
+      allData = allData.concat(json.products?.data || []);
+    });
+  }
+
+  return { json: firstJson, data: allData };
+};
+
+const fetchProducts = async (page = 1, { all = false } = {}) => {
+  const seq = ++fetchSeq;
+  isLoading.value = true;
   try {
     const apiUrl = import.meta.env.VITE_API_URL || 'https://api.kolektix.com';
-    const response = await fetch(`${apiUrl}/api/product?creator_id=187`);
-    const json = await response.json();
-    const data = json.data || (Array.isArray(json) ? json : null);
-    
+    let json;
+    let data;
+
+    if (all) {
+      const result = await fetchProductPages();
+      json = result.json;
+      data = result.data;
+    } else {
+      json = await fetch(`${apiUrl}/api/creator-maping-product/berean.id?page=${page}`).then(res => res.json());
+      data = Array.isArray(json.products?.data) ? json.products.data : [];
+    }
+
+    if (seq !== fetchSeq) return;
+
+    const pagination = json.products || {};
+    const affiliate = json.affiliate_creators?.[0] || null;
+
     if (data) {
       const checkPreorderActive = (p) => {
         if (p.is_preorder == 0) return false;
@@ -190,6 +274,7 @@ const fetchProducts = async () => {
         let finalPrice = price;
         
         let images = p.images || p.product_image;
+        const storeLocation = p.store_location || p.pickup_store || p.has_store_location || null;
         return {
           id: p.id,
           slug: p.slug,
@@ -207,15 +292,15 @@ const fetchProducts = async () => {
           colors: ['cream'],
           creator: { 
             id: p.creator?.id,
-            slug: p.creator?.slug_url || p.creator?.slug,
-            name: p.creator?.name || 'bereanid', 
-            is_verified: p.creator?.is_verified,
-            image_url: p.creator?.image_url || '/logo/logo.webp',
-            avatarInitial: p.creator?.name?.[0] || 'M',
-            creator_title: 'Official Store'
+            slug: p.creator?.slug_url || p.creator?.slug || affiliate?.slug_url || affiliate?.slug,
+            name: p.creator?.name || affiliate?.name || 'bereanid', 
+            is_verified: p.creator?.is_verified ?? (affiliate ? 1 : undefined),
+            image_url: isImageFileUrl(p.creator?.image_url) ? p.creator.image_url : (affiliate?.image_url || '/logo/logo.webp'),
+            avatarInitial: (p.creator?.name || affiliate?.name)?.[0] || 'M',
+            creator_title: affiliate?.creator_title || 'Official Store'
           },
-          has_store_location: p.has_store_location,
-          store_name: p.has_store_location?.store_name || null,
+          has_store_location: storeLocation,
+          store_name: storeLocation?.store_name || null,
           rating: p.average_star ? parseFloat(String(p.average_star).replace(',', '.')) : null,
           total_sold: p.total_sold || 0,
           admin_fee: p.admin_fee || 0,
@@ -223,13 +308,55 @@ const fetchProducts = async () => {
         };
       });
     }
+
+    if (all) {
+      isSearchMode.value = true;
+    } else {
+      isSearchMode.value = false;
+      currentPageNum.value = pagination.current_page || page;
+      totalPages.value = pagination.last_page || 1;
+    }
   } catch (error) {
     console.error('Failed to fetch products:', error);
+  } finally {
+    if (seq === fetchSeq) isLoading.value = false;
   }
 };
 
+const goToPage = (page) => {
+  if (isLoading.value || isSearchMode.value) return;
+  if (page < 1 || page > totalPages.value || page === currentPageNum.value) return;
+  fetchProducts(page);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+const paginationPages = computed(() => {
+  const total = totalPages.value;
+  const current = currentPageNum.value;
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const pages = [1];
+  if (current > 3) pages.push('...');
+  for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) pages.push(i);
+  if (current < total - 2) pages.push('...');
+  pages.push(total);
+  return pages;
+});
+
 onMounted(() => {
-  fetchProducts();
+  if (searchQuery.value && searchQuery.value.trim()) {
+    fetchProducts(1, { all: true });
+  } else {
+    fetchProducts(1);
+  }
+});
+
+watch(searchQuery, (q) => {
+  const hasQuery = !!(q && q.trim());
+  if (hasQuery && !isSearchMode.value) {
+    fetchProducts(1, { all: true });
+  } else if (!hasQuery && isSearchMode.value) {
+    fetchProducts(currentPageNum.value);
+  }
 });
 
 const filteredProducts = computed(() => {
@@ -733,6 +860,75 @@ const t = (key) => {
   }
 }
 
+
+/* Loading state while switching pages */
+.shop-products-grid.is-loading {
+  opacity: 0.45;
+  pointer-events: none;
+  transition: opacity 150ms ease;
+}
+
+/* Pagination (bottom) */
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 2.5rem;
+  flex-wrap: wrap;
+}
+
+.pagination-arrow,
+.pagination-num {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  border: 1px solid var(--color-mocca-border);
+  background-color: #fff;
+  color: var(--color-mocca-dark);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.pagination-arrow svg {
+  width: 16px;
+  height: 16px;
+}
+
+.pagination-arrow:hover:not(:disabled),
+.pagination-num:hover:not(.active):not(:disabled) {
+  border-color: var(--color-mocca-dark);
+  background-color: rgba(232, 226, 217, 0.25);
+}
+
+.pagination-arrow:disabled,
+.pagination-num:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pagination-num.active {
+  background-color: var(--color-mocca-dark);
+  color: var(--color-bg-light);
+  border-color: var(--color-mocca-dark);
+}
+
+.pagination-ellipsis {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  color: var(--color-mocca-muted);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  user-select: none;
+}
 
 /* Responsive adjustments */
 @media (max-width: 1200px) {
