@@ -63,7 +63,7 @@
             </div>
             <div v-if="product.store_name" class="product-location">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-              {{ product.store_name }}
+              <span class="product-location-text">{{ product.store_name }}</span>
             </div>
           </div>
 
@@ -123,54 +123,34 @@ const filters = [
 // Reactive products list
 const products = ref([]);
 
-// Lightweight cards for the two non-primary sections (same catalog, shuffled)
-const extraProducts = computed(() => {
-  return products.value.map(p => ({
-    id: p.id,
-    title: p.title,
-    price: p.price,
-    original_price: p.original_price,
-    promo_price: p.promo_price,
-    discount: p.discount,
-    is_promo: p.is_promo,
-    promo_title: p.promo_title,
-    image: p.image,
-    is_preorder: false,
-    rating: null,
-    total_sold: 0,
-    store_name: DEFAULT_PICKUP_CARD_LABEL,
-    creator: p.creator,
-  }));
-});
-
-// Fallback so the extra sections still render cards before the API resolves
-const fallbackProducts = computed(() => {
-  return extraProducts.value.length > 0 ? extraProducts.value : [
-    { id: -1, title: 'Change Gray Reguler', price: 125000, image: '/slider/slider1.png', is_promo: false, is_preorder: false, rating: null, total_sold: 0, store_name: DEFAULT_PICKUP_CARD_LABEL, creator: { name: 'Berean.id', is_verified: 1, image_url: '/logo/logo.webp' } },
-    { id: -2, title: 'Change Maroon Regular', price: 125000, image: '/slider/slider2.webp', is_promo: false, is_preorder: false, rating: null, total_sold: 0, store_name: DEFAULT_PICKUP_CARD_LABEL, creator: { name: 'Berean.id', is_verified: 1, image_url: '/logo/logo.webp' } },
-    { id: -3, title: 'Change Still Blue Regular', price: 135000, image: '/slider/slider3.webp', is_promo: false, is_preorder: false, rating: null, total_sold: 0, store_name: DEFAULT_PICKUP_CARD_LABEL, creator: { name: 'Berean.id', is_verified: 1, image_url: '/logo/logo.webp' } },
-    { id: -4, title: 'Change White Regular', price: 135000, image: '/slider/slider4.webp', is_promo: false, is_preorder: false, rating: null, total_sold: 0, store_name: DEFAULT_PICKUP_CARD_LABEL, creator: { name: 'Berean.id', is_verified: 1, image_url: '/logo/logo.webp' } },
-  ];
-});
-
+// desktop default 6 card — kalau katalog <6, ulang sampai 6 biar baris pertama penuh
+const toSix = (list) => {
+  if (!list || list.length === 0) return list;
+  if (list.length >= 6) return list;
+  const out = [];
+  let i = 0;
+  while (out.length < 6) { out.push(list[i % list.length]); i++; }
+  return out;
+};
 const sections = computed(() => {
   return [
-    { titleKey: 'bestSellers', items: expandedItems(filteredProducts.value) },
-    { titleKey: 'newArrivals', items: expandedItems(rotatedProducts(1)) },
-    { titleKey: 'curatedPicks', items: expandedItems(rotatedProducts(2)) },
+    { titleKey: 'bestSellers', items: toSix(filteredProducts.value) },
   ];
 });
 
 // Reactive active swatch selections
 const selectedColors = ref({});
 
+const isImageFileUrl = (url) => !!url && /\.(png|jpe?g|webp|gif|svg|avif)(\?.*)?$/i.test(url);
+
 const fetchProducts = async () => {
   try {
     const apiUrl = import.meta.env.VITE_API_URL || 'https://api.kolektix.com';
-    const response = await fetch(`${apiUrl}/api/product?creator_id=187`);
+    const response = await fetch(`${apiUrl}/api/creator-maping-product/berean.id?page=1`);
     const json = await response.json();
-    const data = json.data || (Array.isArray(json) ? json : null);
-    
+    const data = Array.isArray(json.products?.data) ? json.products.data : [];
+    const affiliate = json.affiliate_creators?.[0] || null;
+
     if (data) {
       const checkPreorderActive = (p) => {
         if (p.is_preorder == 0) return false;
@@ -186,14 +166,11 @@ const fetchProducts = async () => {
       const checkPromoActive = (item, fallbackItem = null) => {
         const isPromo = item.is_promo == 1 || (fallbackItem && fallbackItem.is_promo == 1);
         if (!isPromo) return false;
-        
         const startDate = item.promo_start_date || (fallbackItem && fallbackItem.promo_start_date) || null;
         const startTime = item.promo_start_time || (fallbackItem && fallbackItem.promo_start_time) || null;
         const endDate = item.promo_end_date || (fallbackItem && fallbackItem.promo_end_date) || null;
         const endTime = item.promo_end_time || (fallbackItem && fallbackItem.promo_end_time) || null;
-        
         if (!startDate && !startTime) return true;
-        
         const now = new Date();
         const cleanStartDate = startDate ? startDate.split(' ')[0] : now.toISOString().split('T')[0];
         const cleanEndDate = endDate ? endDate.split(' ')[0] : '2099-12-31';
@@ -206,34 +183,29 @@ const fetchProducts = async () => {
         let price = parseInt(p.price);
         let variantId = null;
         let varians = p.varians || p.product_varian;
-        let activeVarian = null;
-
         if (price === 0 && varians && varians.length > 0) {
           price = parseInt(varians[0].price);
           variantId = varians[0].id;
-          activeVarian = varians[0];
         } else if (varians && varians.length > 0) {
           variantId = varians[0].id;
-          activeVarian = varians[0];
         }
-        
         let isPromo = false;
         let promoPrice = null;
         let promoTitle = null;
-
         if (checkPromoActive(p)) {
           isPromo = true;
           promoPrice = parseInt(p.promo_price || price);
           promoTitle = p.promo_title || 'PROMO';
         }
-
         let finalPrice = price;
-        
         let images = p.images || p.product_image;
+        const storeLocation = p.store_location || p.pickup_store || p.has_store_location || DEFAULT_PICKUP_STORE;
         return {
           id: p.id,
           slug: p.slug,
           title: p.product_name,
+          titleEn: p.product_name,
+          titleId: p.product_name,
           price: finalPrice,
           original_price: price,
           promo_price: promoPrice,
@@ -243,22 +215,25 @@ const fetchProducts = async () => {
           variant_id: variantId,
           image: images?.[0]?.image_url || '/slider/slider1.png',
           colors: ['cream'],
-          creator: { 
-            name: p.creator?.name || 'My Diary Records', 
-            is_verified: p.creator?.is_verified,
-            image_url: p.creator?.image_url || '/logo/logo.webp',
-            avatarInitial: p.creator?.name?.[0] || 'M',
-            creator_title: 'Official Store'
+          creator: {
+            id: p.creator?.id,
+            slug: p.creator?.slug_url || p.creator?.slug || affiliate?.slug_url || affiliate?.slug,
+            name: p.creator?.name || affiliate?.name || 'bereanid',
+            is_verified: p.creator?.is_verified ?? (affiliate ? 1 : undefined),
+            image_url: isImageFileUrl(p.creator?.image_url) ? p.creator.image_url : (affiliate?.image_url || '/logo/logo.webp'),
+            avatarInitial: (p.creator?.name || affiliate?.name)?.[0] || 'M',
+            creator_title: affiliate?.creator_title || 'Official Store'
           },
-          has_store_location: p.has_store_location || DEFAULT_PICKUP_STORE,
+          has_store_location: storeLocation || DEFAULT_PICKUP_STORE,
           store_name: DEFAULT_PICKUP_CARD_LABEL,
-          rating: p.average_star ? parseFloat(p.average_star) : null,
+          rating: p.average_star ? parseFloat(String(p.average_star).replace(',', '.')) : null,
           total_review: p.total_review || 0,
           total_sold: p.total_sold || 0,
+          admin_fee: p.admin_fee || 0,
           is_preorder: checkPreorderActive(p)
         };
       });
-      
+
       data.forEach(p => {
         selectedColors.value[p.id] = 'cream';
       });
@@ -270,7 +245,7 @@ const fetchProducts = async () => {
 
 const bookAnim = {};
 const iconEls = {};
-const layouts = ['bestSellers', 'newArrivals', 'curatedPicks'];
+const layouts = ['bestSellers'];
 
 onMounted(() => {
   fetchProducts();
@@ -312,27 +287,6 @@ const filteredProducts = computed(() => {
   return list;
 });
 
-// Extra sections: same catalog, different order so they don't look duplicated
-const rotatedProducts = (offset) => {
-  const base = fallbackProducts.value;
-  if (base.length === 0) return base;
-  const k = offset % base.length;
-  return [...base.slice(k), ...base.slice(0, k)];
-};
-
-// Horizontal scroll needs more than 5 cards — repeat catalog so each row scrolls
-const expandedItems = (list) => {
-  if (!list || list.length === 0) return list;
-  if (list.length > 5) return list;
-  const out = [];
-  let i = 0;
-  while (out.length < 10) {
-    out.push(list[i % list.length]);
-    i++;
-  }
-  return out;
-};
-
 const formatSold = (n) => {
   if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1).replace(/\.0$/, '')}rb+`;
   return `${n}+`;
@@ -366,19 +320,11 @@ const resetSearch = () => {
 const shopTranslations = {
   id: {
     bestSellers: 'Paling Laris',
-    newArrivals: 'Produk Baru',
-    curatedPicks: 'Pilihan Pilihan',
-    viewAll: 'Lihat semua produk',
-    viewDetails: 'Lihat Detail',
     marqueeText: 'Produk Original Berean.id — Kualitas Premium — Pengiriman Cepat',
     noProducts: 'Tidak ada produk yang cocok dengan pencarian Anda.'
   },
   en: {
     bestSellers: 'Shop Best Sellers',
-    newArrivals: 'New Arrivals',
-    curatedPicks: 'Curated Picks',
-    viewAll: 'View all products',
-    viewDetails: 'View Details',
     marqueeText: 'Original Berean.id Products — Premium Quality — Fast Shipping',
     noProducts: 'No products match your search.'
   }
@@ -511,17 +457,9 @@ const t = (key) => {
   scrollbar-width: thin;
   scrollbar-color: rgba(47, 78, 62, 0.25) transparent;
 }
-
-.products-grid::-webkit-scrollbar {
-  height: 6px;
-}
-.products-grid::-webkit-scrollbar-thumb {
-  background: rgba(47, 78, 62, 0.25);
-  border-radius: 999px;
-}
-.products-grid::-webkit-scrollbar-track {
-  background: transparent;
-}
+.products-grid::-webkit-scrollbar { height: 6px; }
+.products-grid::-webkit-scrollbar-thumb { background: rgba(47, 78, 62, 0.25); border-radius: 999px; }
+.products-grid::-webkit-scrollbar-track { background: transparent; }
 
 .product-card {
   background: none;
@@ -533,7 +471,7 @@ const t = (key) => {
   height: auto;
   cursor: pointer;
   min-width: 0;
-  flex: 0 0 calc((100% - 4rem) / 5); /* 5 cards visible on desktop, rest scrolls */
+  flex: 0 0 calc((100% - 5rem) / 6);
   scroll-snap-align: start;
 }
 
@@ -665,12 +603,21 @@ const t = (key) => {
   font-size: 0.75rem;
   color: var(--color-mocca-muted);
   margin-top: 0.1rem;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .product-location svg {
   width: 13px;
   height: 13px;
   flex-shrink: 0;
+}
+
+.product-location-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -900,13 +847,10 @@ const t = (key) => {
   background-color: #fff;
 }
 
-/* Responsive Breakpoints */
+/* Desktop keeps 6 columns down to tablet — only padding/typography adjusts */
 @media (max-width: 1200px) {
   .shop-best-sellers {
     padding: 0.75rem 2rem 2rem 2rem;
-  }
-  .product-card {
-    flex-basis: calc((100% - 3rem) / 4); /* 4 cards visible, rest scrolls */
   }
   .section-header {
     margin-bottom: 0.75rem;
@@ -914,10 +858,6 @@ const t = (key) => {
 }
 
 @media (max-width: 1024px) {
-  .product-card {
-    flex-basis: calc((100% - 2rem) / 3); /* 3 cards visible, rest scrolls */
-  }
-
   .section-header {
     margin-bottom: 0.65rem;
   }
@@ -955,10 +895,8 @@ const t = (key) => {
     gap: 0.85rem;
     scroll-snap-type: x mandatory;
   }
-
-  .product-card {
-    flex: 0 0 100%; /* 1 card visible on mobile, rest scrolls horizontally */
-    scroll-snap-align: start;
+  .products-grid .product-card {
+    flex: 0 0 calc((100% - 0.85rem) / 2);
   }
 
   .marquee-chunk {
@@ -989,16 +927,28 @@ const t = (key) => {
   .product-info {
     padding: 0.45rem 0.15rem 0.25rem;
     gap: 0.15rem;
+    min-width: 0;
   }
 
   .product-title {
     font-size: 0.95rem;
     line-height: 1.3;
-    min-height: 2.4rem;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
+    min-height: 0;
+    white-space: nowrap;
     overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .product-location {
+    font-size: 0.72rem;
+  }
+
+  .product-location svg {
+    flex-shrink: 0;
+  }
+
+  .product-meta {
+    font-size: 0.72rem;
   }
 
   .product-price {
@@ -1009,11 +959,6 @@ const t = (key) => {
     font-size: 0.75rem;
   }
 
-  .product-meta,
-  .product-location {
-    font-size: 0.72rem;
-  }
-
   .card-divider {
     margin: 0.2rem 0 0;
   }
@@ -1021,6 +966,14 @@ const t = (key) => {
   .card-creator-section {
     gap: 0.45rem;
     padding: 0.25rem 0.15rem 0;
+    min-width: 0;
+  }
+  .creator-info {
+    min-width: 0;
+    overflow: hidden;
+  }
+  .creator-name-wrapper {
+    min-width: 0;
   }
   .creator-avatar {
     width: 30px;
@@ -1031,6 +984,10 @@ const t = (key) => {
   }
   .creator-name {
       font-size: 0.82rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0;
   }
 
   .no-results-card {
@@ -1054,16 +1011,20 @@ const t = (key) => {
 
   .products-grid {
     gap: 0.65rem;
-    scroll-snap-type: x mandatory;
   }
-
-  .product-card {
-    flex: 0 0 100%; /* 1 card visible on small phones, rest scrolls horizontally */
+  .products-grid .product-card {
+    flex: 0 0 calc((100% - 0.65rem) / 2);
   }
 
   .product-title {
     font-size: 0.9rem;
-    min-height: 2.2rem;
+    min-height: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .product-location-text {
+    font-size: 0.72rem;
   }
 
   .product-price {
