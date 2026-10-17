@@ -50,6 +50,16 @@ export const openProduct = (product) => {
 export const ticketQuantity = ref(1);
 export const selectedTickets = ref([]);
 
+// Default pickup store for Berean (fallback when API has no store_location)
+export const DEFAULT_PICKUP_STORE = {
+  store_name: 'Berean book store',
+  name: 'Berean book store',
+  city: 'Menara Kuningan Lantai P1',
+  address: 'Menara Kuningan Lantai P1',
+};
+export const DEFAULT_PICKUP_LABEL = 'Berean book store, Menara Kuningan Lantai P1';
+export const DEFAULT_PICKUP_CARD_LABEL = 'Menara Kuningan Lantai P1';
+
 // Format helper for ID
 const getCartKey = (id, color) => `${id}-${color}`;
 
@@ -72,7 +82,7 @@ export const addToCart = (product, color, quantity = 1) => {
       color: color || 'default',
       quantity: quantity,
       variant_id: product.variant_id || null,
-      store_location: product.has_store_location || null, admin_fee: product.admin_fee || 0
+      store_location: product.has_store_location || DEFAULT_PICKUP_STORE, admin_fee: product.admin_fee || 0
     });
   }
 };

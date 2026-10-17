@@ -128,7 +128,7 @@
                 <span style="font-size: 0.7rem; color: var(--color-mocca-muted);">Dikirim dari :</span>
                 <div style="display: flex; align-items: center; gap: 0.35rem;">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px; color: var(--color-mocca-dark);"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                  <span style="font-weight: 700; text-transform: uppercase;">{{ storeLocationInfo.store_name }}</span>, {{ storeLocationInfo.city || 'DKI Jakarta' }}
+                  <span style="font-weight: 700; text-transform: uppercase;">{{ storeLocationDisplay }}</span>
                 </div>
               </div>
             </div>
@@ -166,20 +166,62 @@
           </div>
         </div>
 
-        <!-- Related product cards (replaces trust features) -->
+        <!-- Related product cards (same card as beranda & shop page) -->
         <div class="related-products">
           <h3 class="related-title">{{ currentLang === 'id' ? 'Produk Terkait' : 'Related Products' }}</h3>
           <div class="related-grid">
             <div
-              v-for="(thumb, idx) in productData.thumbnails"
-              :key="idx"
-              class="related-card"
-              @click="activeImageIndex = idx"
+              v-for="rp in expandedRelated"
+              :key="rp._key"
+              class="product-card related-product-card"
+              @click="openRelated(rp)"
             >
-              <div class="related-image-wrap">
-                <img :src="thumb" :alt="productTitle" class="related-image" loading="lazy" />
+              <div class="product-image-container">
+                <div class="badges-container">
+                  <div v-if="rp.is_promo || discountPercent(rp) > 0" class="status-badge status-promo">{{ rp.promo_title || 'PROMO' }}</div>
+                  <div v-if="rp.is_preorder" class="status-badge">PRE-ORDER</div>
+                </div>
+                <div v-if="discountPercent(rp) > 0" class="discount-badge">-{{ discountPercent(rp) }}%</div>
+                <img :src="rp.image" :alt="rp.title" class="product-image" />
+                <div class="product-card-shine" aria-hidden="true"></div>
               </div>
-              <p class="related-name">{{ productTitle }}</p>
+              <div class="product-info">
+                <h3 class="product-title">{{ rp.title }}</h3>
+                <div class="product-price-row">
+                  <template v-if="discountPercent(rp) > 0">
+                    <span class="product-price is-discount">{{ formatPrice(discountedPrice(rp)) }}</span>
+                    <span class="product-original-price">{{ formatPrice(rp.original_price || rp.price) }}</span>
+                  </template>
+                  <template v-else>
+                    <span class="product-price">{{ formatPrice(rp.original_price || rp.price) }}</span>
+                  </template>
+                </div>
+                <div v-if="rp.rating" class="product-meta">
+                  <span class="meta-rating">
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"/></svg>
+                    {{ rp.rating.toFixed(1) }}
+                  </span>
+                  <span class="meta-dot">•</span>
+                  <span>{{ formatSold(rp.total_sold) }} Sold</span>
+                </div>
+                <div class="product-location">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                  {{ rp.store_name }}
+                </div>
+              </div>
+              <div class="card-divider"></div>
+              <div class="card-creator-section">
+                <div class="creator-avatar-wrapper">
+                  <img :src="rp.creator?.image_url || '/logo/logo.webp'" :alt="rp.creator?.name" class="creator-avatar" />
+                </div>
+                <div class="creator-info">
+                  <span class="creator-label">Provided by</span>
+                  <div class="creator-name-wrapper" style="display: flex; align-items: center; gap: 4px;">
+                    <span class="creator-name">{{ rp.creator?.name || 'Berean.id' }}</span>
+                    <svg v-if="rp.creator?.is_verified == 1" width="14" height="14" viewBox="0 0 24 24" fill="#3b82f6" stroke="none"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -197,8 +239,8 @@
 </template>
 
 <script setup>
-import { ref, watch, computed } from 'vue';
-import { addToCart, updateQuantity, getItemQuantity, currentPage, currentLang, checkedCheckoutItems } from '../store/cart.js';
+import { ref, watch, computed, onMounted } from 'vue';
+import { addToCart, updateQuantity, getItemQuantity, currentPage, currentLang, checkedCheckoutItems, DEFAULT_PICKUP_STORE, DEFAULT_PICKUP_LABEL, DEFAULT_PICKUP_CARD_LABEL, openProduct } from '../store/cart.js';
 
 const props = defineProps({
   isOpen: { type: Boolean, required: true },
@@ -376,9 +418,142 @@ const currentStockCount = computed(() => {
   return null;
 });
 
-const storeLocationInfo = computed(() => {
-  return fetchedProductDetails.value?.has_store_location || props.product?.has_store_location || null;
+const storeLocationDisplay = computed(() => {
+  return DEFAULT_PICKUP_LABEL;
 });
+const storeLocationInfo = computed(() => {
+  return fetchedProductDetails.value?.has_store_location || props.product?.has_store_location || DEFAULT_PICKUP_STORE;
+});
+
+// Related products: same source as shop/beranda, mapped to card shape — one horizontal line, 5 visible, rest scrolls
+const relatedRaw = ref([]);
+const relatedProducts = computed(() => {
+  const list = relatedRaw.value.filter(r => r.id !== props.product?.id).slice(0, 5);
+  if (list.length > 0) return list;
+  // fallback: show current product as card if API empty
+  if (!props.product?.id) return [];
+  return [{
+    id: props.product.id,
+    slug: props.product.slug,
+    title: productTitle.value || 'Berean.id Official Merch',
+    price: props.product.price || props.product.original_price || 0,
+    original_price: props.product.original_price || props.product.price || 0,
+    promo_price: props.product.promo_price || null,
+    discount: props.product.discount || 0,
+    is_promo: !!props.product.is_promo,
+    promo_title: props.product.promo_title || 'PROMO',
+    image: props.product.image || '/slider/slider1.png',
+    is_preorder: !!props.product.is_preorder,
+    rating: props.product.rating || null,
+    total_sold: props.product.total_sold || 0,
+    store_name: DEFAULT_PICKUP_CARD_LABEL,
+    creator: props.product.creator || { name: 'Berean.id', is_verified: 1, image_url: '/logo/logo.webp' },
+    has_store_location: props.product.has_store_location || DEFAULT_PICKUP_STORE,
+    variant_id: props.product.variant_id || null,
+  }];
+});
+const fetchRelated = async () => {
+  try {
+    const apiUrl = import.meta.env.VITE_API_URL || 'https://api.kolektix.com';
+    const res = await fetch(`${apiUrl}/api/creator-maping-product/berean.id?page=1`);
+    const json = await res.json();
+    const data = json.products?.data || json.data || [];
+    const mapped = data.filter(p => p.product_status_id == 2).map(p => {
+      const price = parseInt(p.price || p.varians?.[0]?.price || 0);
+      const images = p.images || p.product_image;
+      return {
+        id: p.id,
+        slug: p.slug,
+        title: p.product_name,
+        price,
+        original_price: price,
+        promo_price: p.promo_price ? parseInt(p.promo_price) : null,
+        discount: p.discount || 0,
+        is_promo: p.is_promo == 1,
+        promo_title: p.promo_title || 'PROMO',
+        image: images?.[0]?.image_url || '/slider/slider1.png',
+        is_preorder: p.is_preorder == 1,
+        rating: p.average_star ? parseFloat(String(p.average_star).replace(',', '.')) : null,
+        total_sold: p.total_sold || 0,
+        store_name: DEFAULT_PICKUP_CARD_LABEL,
+        creator: { name: p.creator?.name || 'Berean.id', is_verified: p.creator?.is_verified ?? 1, image_url: p.creator?.image_url || '/logo/logo.webp' },
+        has_store_location: p.has_store_location || p.store_location || DEFAULT_PICKUP_STORE,
+        variant_id: p.varians?.[0]?.id || p.product_varian?.[0]?.id || null,
+        raw: p,
+      };
+    });
+    relatedRaw.value = mapped;
+  } catch (_) {}
+};
+const expandedRelated = computed(() => {
+  const base = relatedProducts.value;
+  if (base.length === 0) return [];
+  if (base.length > 5) return base.map((r, i) => ({ ...r, _key: `${r.id}-${i}` }));
+  const out = [];
+  let i = 0;
+  while (out.length < 10) {
+    const src = base[i % base.length];
+    out.push({ ...src, _key: `${src.id}-${out.length}` });
+    i++;
+  }
+  return out;
+});
+const openRelated = (rp) => {
+  const src = rp.raw || rp;
+  // map to shape expected by openProduct / ProductModal
+  const mapped = {
+    id: rp.id,
+    slug: rp.slug,
+    title: rp.title,
+    titleEn: rp.title,
+    titleId: rp.title,
+    price: rp.price,
+    original_price: rp.original_price,
+    promo_price: rp.promo_price,
+    discount: rp.discount,
+    is_promo: rp.is_promo,
+    promo_title: rp.promo_title,
+    image: rp.image,
+    is_preorder: rp.is_preorder,
+    rating: rp.rating,
+    total_sold: rp.total_sold,
+    store_name: rp.store_name,
+    creator: rp.creator,
+    has_store_location: rp.has_store_location,
+    variant_id: rp.variant_id,
+  };
+  // if modal is inline (page product), navigate via openProduct; else just switch product inside modal
+  if (props.inline) {
+    openProduct(mapped);
+  } else {
+    // update modal product in place
+    fetchedProductDetails.value = null;
+    activeImageIndex.value = 0;
+    // trigger parent to swap product by emitting? fallback: open as new page
+    openProduct(mapped);
+  }
+};
+const formatSold = (n) => {
+  if (!n) return '0';
+  if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1).replace(/\.0$/, '')}rb+`;
+  return `${n}+`;
+};
+const discountPercent = (p) => {
+  const base = Number(p?.original_price) || 0;
+  const discPrice = Number(p?.promo_price) || 0;
+  if (base && discPrice && discPrice < base) return Math.round(((base - discPrice) / base) * 100);
+  const d = Number(p?.discount) || 0;
+  if (d > 0 && d <= 100 && base) return Math.round(d);
+  return 0;
+};
+const discountedPrice = (p) => {
+  const discPrice = Number(p?.promo_price) || 0;
+  const base = Number(p?.original_price) || 0;
+  if (base && discPrice && discPrice < base) return discPrice;
+  const d = Number(p?.discount) || 0;
+  if (d > 0 && d <= 100 && base) return Math.round(base * (1 - d / 100));
+  return base;
+};
 
 const checkPromoActive = (item, fallbackItem = null) => {
   let targetItem = null;
@@ -476,6 +651,7 @@ watch(() => props.product, async (newVal) => {
     isWishlisted.value = false;
     fetchedProductDetails.value = null;
     qty.value = getItemQuantity(newVal.id, selectedColor.value) || 1;
+    fetchRelated();
 
     if (newVal.slug) {
       isLoadingDetails.value = true;
@@ -504,6 +680,7 @@ watch(() => props.product, async (newVal) => {
     }
   }
 }, { immediate: true });
+onMounted(fetchRelated);
 
 // Watch selected color changes to update quantity to match current cart count
 watch(selectedColor, (newColor) => {
@@ -534,7 +711,7 @@ const handleAddToCart = () => {
     price: activePrice.value,
     image: props.product.image,
     variant_id: variantId,
-    has_store_location: fetchedProductDetails.value?.has_store_location || props.product?.has_store_location || null, admin_fee: fetchedProductDetails.value?.admin_fee || props.product?.admin_fee || 0
+    has_store_location: fetchedProductDetails.value?.has_store_location || props.product?.has_store_location || DEFAULT_PICKUP_STORE, admin_fee: fetchedProductDetails.value?.admin_fee || props.product?.admin_fee || 0
   };
   
   const variantVal = selectedSize.value || '-';
@@ -567,7 +744,7 @@ const handleBuyNow = () => {
   const currentPrice = activePrice.value;
   const variantId = currentVariant.value ? currentVariant.value.id : (props.product.variant_id || null);
 
-  const storeLocation = fetchedProductDetails.value?.has_store_location || props.product?.has_store_location || null;
+  const storeLocation = fetchedProductDetails.value?.has_store_location || props.product?.has_store_location || DEFAULT_PICKUP_STORE;
 
   checkedCheckoutItems.value = [{
     id: props.product.id,
@@ -1309,7 +1486,7 @@ const formatPrice = (price) => {
   background-color: var(--color-mocca-muted);
 }
 
-/* Related product cards (replaces old trust features) */
+/* Related product cards — reuse main product-card look, 5 per row */
 .related-products {
   border-top: 1px solid var(--color-mocca-border);
   background-color: #fff;
@@ -1325,57 +1502,201 @@ const formatPrice = (price) => {
 }
 
 .related-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1rem;
-}
-
-.related-card {
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  min-width: 0;
-  text-align: left;
+  gap: 0.85rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x proximity;
+  padding-bottom: 0.5rem;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(47,78,62,0.25) transparent;
 }
-
-.related-image-wrap {
+.related-grid::-webkit-scrollbar { height: 6px; }
+.related-grid::-webkit-scrollbar-thumb { background: rgba(47,78,62,0.25); border-radius: 999px; }
+.related-grid::-webkit-scrollbar-track { background: transparent; }
+.related-grid .product-card {
+  cursor: pointer;
+  flex: 0 0 calc((100% - 4 * 0.85rem) / 5);
+  scroll-snap-align: start;
+  min-width: 0;
+}
+.related-product-card .product-title {
+  font-size: 0.85rem;
+  min-height: 2.2rem;
+}
+.related-product-card .product-price {
+  font-size: 0.85rem;
+}
+@media (max-width: 1200px) {
+  .related-grid .product-card { flex-basis: calc((100% - 3 * 0.85rem) / 4); }
+}
+@media (max-width: 1024px) {
+  .related-grid .product-card { flex-basis: calc((100% - 2 * 0.85rem) / 3); }
+}
+@media (max-width: 768px) {
+  .related-grid { gap: 0.65rem; scroll-snap-type: x mandatory; }
+  .related-grid .product-card { flex: 0 0 100%; }
+}
+@media (max-width: 480px) {
+  .related-grid .product-card { flex: 0 0 100%; }
+}
+/* Card chrome reused from shop sections — ensure related cards match */
+.related-grid .product-image-container {
   width: 100%;
   aspect-ratio: 1 / 1;
+  position: relative;
   border-radius: 12px;
-  overflow: hidden;
   background-color: #fff;
-  border: 1px solid var(--color-mocca-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
 }
-
-.related-image {
+.related-grid .product-image {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
-  transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  border-radius: 12px;
+  transition: transform 0.4s cubic-bezier(0.23,1,0.32,1);
 }
-
-.related-card:hover .related-image {
-  transform: scale(1.05);
+.related-grid .badges-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 3;
+  align-items: flex-start;
 }
-
-.related-name {
+.related-grid .status-badge {
+  background-color: #111;
+  color: #fff;
   font-family: var(--font-body);
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #111;
-  line-height: 1.35;
-  margin: 0;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  min-height: 2.3rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  padding: 0.3rem 0.7rem 0.3rem 0.6rem;
+  border-radius: 0 0 8px 0;
 }
+.related-grid .status-promo { background-color: #c94b4b; }
+.related-grid .discount-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 3;
+  background-color: #d32f2f;
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  line-height: 1;
+  box-shadow: 0 2px 8px rgba(211,47,47,0.35);
+}
+.related-grid .product-card-shine {
+  position: absolute;
+  top: -10%;
+  bottom: -10%;
+  left: 0;
+  width: 55%;
+  background: linear-gradient(105deg, transparent 0%, rgba(255,255,255,0.25) 35%, rgba(255,255,255,0.9) 50%, rgba(255,255,255,0.25) 65%, transparent 100%);
+  transform: translateX(-180%) skewX(-12deg);
+  transition: transform 0.8s cubic-bezier(0.25,0.8,0.25,1);
+  z-index: 2;
+  pointer-events: none;
+}
+.related-grid .product-card:hover .product-card-shine { transform: translateX(280%) skewX(-12deg); }
+@media (hover: hover) and (pointer: fine) {
+  .related-grid .product-card:hover .product-image { transform: scale(1.06); }
+}
+.related-grid .product-info {
+  padding: 0.35rem 0.25rem 0.25rem;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  gap: 0.1rem;
+}
+.related-grid .product-title {
+  font-family: var(--font-body);
+  font-weight: 700;
+  color: #111;
+  line-height: 1.25;
+  margin: 0;
+}
+.related-grid .product-price-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  margin-top: 0.05rem;
+}
+.related-grid .product-price {
+  font-family: var(--font-body);
+  font-weight: 700;
+  color: #111;
+  white-space: nowrap;
+  margin: 0;
+}
+.related-grid .product-price.is-discount { color: #d32f2f; }
+.related-grid .product-original-price {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: #9a9a9a;
+  text-decoration: line-through;
+}
+.related-grid .product-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  color: var(--color-mocca-muted);
+  margin-top: 0.15rem;
+}
+.related-grid .meta-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  color: #111;
+  font-weight: 600;
+}
+.related-grid .meta-rating svg { width: 13px; height: 13px; color: #f5a524; }
+.related-grid .meta-dot { opacity: 0.5; }
+.related-grid .product-location {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  color: var(--color-mocca-muted);
+  margin-top: 0.1rem;
+}
+.related-grid .product-location svg { width: 13px; height: 13px; flex-shrink: 0; }
+.related-grid .card-divider {
+  height: 1px;
+  width: 100%;
+  border-top: 1px dashed rgba(0,0,0,0.12);
+  background: transparent;
+  margin: 0.15rem 0 0;
+}
+.related-grid .card-creator-section {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.25rem 0;
+  background: transparent;
+}
+.related-grid .creator-avatar-wrapper { flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.related-grid .creator-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; display: block; }
+.related-grid .creator-info { display: flex; flex-direction: column; line-height: 1.25; }
+.related-grid .creator-label { font-family: var(--font-body); font-size: 0.55rem; color: var(--color-mocca-muted); }
+.related-grid .creator-name { font-family: var(--font-body); font-size: 0.85rem; font-weight: 700; color: var(--color-mocca-dark); }
 
 /* Toast */
 .checkout-toast {

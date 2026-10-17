@@ -83,7 +83,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue';
-import { currentLang, addToCart, getItemQuantity, updateQuantity } from '../store/cart.js';
+import { currentLang, addToCart, getItemQuantity, updateQuantity, DEFAULT_PICKUP_STORE } from '../store/cart.js';
 
 const props = defineProps({
   isOpen: Boolean,
@@ -277,7 +277,7 @@ const handleAddToCart = () => {
     price: currentPrice.value,
     image: props.product.image,
     variant_id: variantId,
-    has_store_location: fetchedProductDetails.value?.has_store_location || props.product?.has_store_location || null,
+    has_store_location: fetchedProductDetails.value?.has_store_location || props.product?.has_store_location || DEFAULT_PICKUP_STORE,
     admin_fee: fetchedProductDetails.value?.admin_fee || props.product?.admin_fee || 0
   };
   

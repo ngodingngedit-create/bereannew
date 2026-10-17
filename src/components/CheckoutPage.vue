@@ -234,7 +234,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue';
-import { currentPage, cartItems, updateQuantity, removeFromCart, checkedCheckoutItems } from '../store/cart.js';
+import { currentPage, cartItems, updateQuantity, removeFromCart, checkedCheckoutItems, DEFAULT_PICKUP_STORE } from '../store/cart.js';
 
 // Trust accordion items configuration
 const trustItems = ref([
@@ -287,7 +287,7 @@ watch(cartItems, (newCartItems) => {
       existing.name = cartItem.title;
       existing.price = cartItem.price;
       existing.image = cartItem.image;
-      existing.store_location = cartItem.store_location;
+      existing.store_location = cartItem.store_location || DEFAULT_PICKUP_STORE;
       existing.variant_id = cartItem.variant_id || null;
       updatedItems.push(existing);
     } else {
@@ -302,7 +302,7 @@ watch(cartItems, (newCartItems) => {
         image: cartItem.image,
         note: '',
         notePlaceholder: 'Contoh: tolong dibungkus rapi',
-        store_location: cartItem.store_location,
+        store_location: cartItem.store_location || DEFAULT_PICKUP_STORE,
         variant_id: cartItem.variant_id || null
       });
     }
@@ -402,7 +402,7 @@ const processPayment = () => {
       size: item.size || '-',
       image: item.image,
       note: item.note || '',
-      store_location: item.store_location,
+      store_location: item.store_location || DEFAULT_PICKUP_STORE,
       variant_id: item.variant_id || null
     }));
 

@@ -138,7 +138,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
-import { currentLang, searchQuery, currentPage, activeCreatorSlug, activeCategory, openProduct } from '../store/cart.js';
+import { currentLang, searchQuery, currentPage, activeCreatorSlug, activeCategory, openProduct, DEFAULT_PICKUP_STORE, DEFAULT_PICKUP_CARD_LABEL } from '../store/cart.js';
 
 const openCreator = (creator) => {
   if (creator) {
@@ -274,7 +274,7 @@ const fetchProducts = async (page = 1, { all = false } = {}) => {
         let finalPrice = price;
         
         let images = p.images || p.product_image;
-        const storeLocation = p.store_location || p.pickup_store || p.has_store_location || null;
+        const storeLocation = p.store_location || p.pickup_store || p.has_store_location || DEFAULT_PICKUP_STORE;
         return {
           id: p.id,
           slug: p.slug,
@@ -299,8 +299,8 @@ const fetchProducts = async (page = 1, { all = false } = {}) => {
             avatarInitial: (p.creator?.name || affiliate?.name)?.[0] || 'M',
             creator_title: affiliate?.creator_title || 'Official Store'
           },
-          has_store_location: storeLocation,
-          store_name: storeLocation?.store_name || null,
+          has_store_location: storeLocation || DEFAULT_PICKUP_STORE,
+          store_name: DEFAULT_PICKUP_CARD_LABEL,
           rating: p.average_star ? parseFloat(String(p.average_star).replace(',', '.')) : null,
           total_sold: p.total_sold || 0,
           admin_fee: p.admin_fee || 0,
@@ -568,7 +568,7 @@ const t = (key) => {
 /* Grid Layout: 4 Columns on Desktop */
 .shop-products-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 0.85rem;
 }
 
@@ -936,14 +936,14 @@ const t = (key) => {
     padding: 1.25rem 2rem 4rem 2rem;
   }
   .shop-products-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr)); /* 3 Columns */
+    grid-template-columns: repeat(4, minmax(0, 1fr)); /* 4 Columns */
     gap: 1rem;
   }
 }
 
 @media (max-width: 1024px) {
   .shop-products-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr)); /* 2 Columns */
+    grid-template-columns: repeat(3, minmax(0, 1fr)); /* 3 Columns */
     gap: 1rem;
   }
   .shop-controls {

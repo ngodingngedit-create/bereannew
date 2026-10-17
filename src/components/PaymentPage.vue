@@ -510,7 +510,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { currentPage, cartItems, clearCart, updateQuantity, removeFromCart, checkedCheckoutItems, currentLang } from '../store/cart.js';
+import { currentPage, cartItems, clearCart, updateQuantity, removeFromCart, checkedCheckoutItems, currentLang, DEFAULT_PICKUP_STORE } from '../store/cart.js';
 
 // Timer Logic
 const paymentTimeLeft = ref(15 * 60);
@@ -834,7 +834,7 @@ const saveAddressAndFetchShipping = async () => {
     if (totalWeight === 0) totalWeight = 1000;
     
     const firstItem = activeCartItems.value[0] || {};
-    const originStore = firstItem.store_location || {};
+    const originStore = firstItem.store_location || DEFAULT_PICKUP_STORE;
 
     const apiUrl = import.meta.env.VITE_API_URL || 'https://api.kolektix.com';
     const payload = {
@@ -1151,7 +1151,7 @@ const submitOrder = async () => {
     
     // First item for delivery flags
     const firstItem = activeCartItems.value[0] || {};
-    const originStore = firstItem.store_location || {};
+    const originStore = firstItem.store_location || DEFAULT_PICKUP_STORE;
     const is_pickup_instore = firstItem.is_pickup_instore || 0;
     const is_delivery = firstItem.is_delivery !== undefined ? firstItem.is_delivery : 1;
     

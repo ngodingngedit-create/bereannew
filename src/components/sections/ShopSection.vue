@@ -108,7 +108,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import lottie from 'lottie-web';
-import { searchQuery, currentLang, currentPage, openProduct, productFilter } from '../../store/cart.js';
+import { searchQuery, currentLang, currentPage, openProduct, productFilter, DEFAULT_PICKUP_STORE, DEFAULT_PICKUP_CARD_LABEL } from '../../store/cart.js';
 
 const openModal = (product) => openProduct(product);
 
@@ -138,7 +138,7 @@ const extraProducts = computed(() => {
     is_preorder: false,
     rating: null,
     total_sold: 0,
-    store_name: null,
+    store_name: DEFAULT_PICKUP_CARD_LABEL,
     creator: p.creator,
   }));
 });
@@ -146,10 +146,10 @@ const extraProducts = computed(() => {
 // Fallback so the extra sections still render cards before the API resolves
 const fallbackProducts = computed(() => {
   return extraProducts.value.length > 0 ? extraProducts.value : [
-    { id: -1, title: 'Change Gray Reguler', price: 125000, image: '/slider/slider1.png', is_promo: false, is_preorder: false, rating: null, total_sold: 0, store_name: null, creator: { name: 'Berean.id', is_verified: 1, image_url: '/logo/logo.webp' } },
-    { id: -2, title: 'Change Maroon Regular', price: 125000, image: '/slider/slider2.webp', is_promo: false, is_preorder: false, rating: null, total_sold: 0, store_name: null, creator: { name: 'Berean.id', is_verified: 1, image_url: '/logo/logo.webp' } },
-    { id: -3, title: 'Change Still Blue Regular', price: 135000, image: '/slider/slider3.webp', is_promo: false, is_preorder: false, rating: null, total_sold: 0, store_name: null, creator: { name: 'Berean.id', is_verified: 1, image_url: '/logo/logo.webp' } },
-    { id: -4, title: 'Change White Regular', price: 135000, image: '/slider/slider4.webp', is_promo: false, is_preorder: false, rating: null, total_sold: 0, store_name: null, creator: { name: 'Berean.id', is_verified: 1, image_url: '/logo/logo.webp' } },
+    { id: -1, title: 'Change Gray Reguler', price: 125000, image: '/slider/slider1.png', is_promo: false, is_preorder: false, rating: null, total_sold: 0, store_name: DEFAULT_PICKUP_CARD_LABEL, creator: { name: 'Berean.id', is_verified: 1, image_url: '/logo/logo.webp' } },
+    { id: -2, title: 'Change Maroon Regular', price: 125000, image: '/slider/slider2.webp', is_promo: false, is_preorder: false, rating: null, total_sold: 0, store_name: DEFAULT_PICKUP_CARD_LABEL, creator: { name: 'Berean.id', is_verified: 1, image_url: '/logo/logo.webp' } },
+    { id: -3, title: 'Change Still Blue Regular', price: 135000, image: '/slider/slider3.webp', is_promo: false, is_preorder: false, rating: null, total_sold: 0, store_name: DEFAULT_PICKUP_CARD_LABEL, creator: { name: 'Berean.id', is_verified: 1, image_url: '/logo/logo.webp' } },
+    { id: -4, title: 'Change White Regular', price: 135000, image: '/slider/slider4.webp', is_promo: false, is_preorder: false, rating: null, total_sold: 0, store_name: DEFAULT_PICKUP_CARD_LABEL, creator: { name: 'Berean.id', is_verified: 1, image_url: '/logo/logo.webp' } },
   ];
 });
 
@@ -250,8 +250,8 @@ const fetchProducts = async () => {
             avatarInitial: p.creator?.name?.[0] || 'M',
             creator_title: 'Official Store'
           },
-          has_store_location: p.has_store_location,
-          store_name: p.has_store_location?.store_name || null,
+          has_store_location: p.has_store_location || DEFAULT_PICKUP_STORE,
+          store_name: DEFAULT_PICKUP_CARD_LABEL,
           rating: p.average_star ? parseFloat(p.average_star) : null,
           total_review: p.total_review || 0,
           total_sold: p.total_sold || 0,
@@ -320,13 +320,13 @@ const rotatedProducts = (offset) => {
   return [...base.slice(k), ...base.slice(0, k)];
 };
 
-// Horizontal scroll needs more than 4 cards — repeat catalog so each row scrolls
+// Horizontal scroll needs more than 5 cards — repeat catalog so each row scrolls
 const expandedItems = (list) => {
   if (!list || list.length === 0) return list;
-  if (list.length > 4) return list;
+  if (list.length > 5) return list;
   const out = [];
   let i = 0;
-  while (out.length < 8) {
+  while (out.length < 10) {
     out.push(list[i % list.length]);
     i++;
   }
@@ -533,7 +533,7 @@ const t = (key) => {
   height: auto;
   cursor: pointer;
   min-width: 0;
-  flex: 0 0 calc((100% - 3rem) / 4); /* 4 cards visible on desktop, rest scrolls */
+  flex: 0 0 calc((100% - 4rem) / 5); /* 5 cards visible on desktop, rest scrolls */
   scroll-snap-align: start;
 }
 
@@ -906,7 +906,7 @@ const t = (key) => {
     padding: 0.75rem 2rem 2rem 2rem;
   }
   .product-card {
-    flex-basis: calc((100% - 2rem) / 3); /* 3 cards visible, rest scrolls */
+    flex-basis: calc((100% - 3rem) / 4); /* 4 cards visible, rest scrolls */
   }
   .section-header {
     margin-bottom: 0.75rem;
@@ -915,7 +915,7 @@ const t = (key) => {
 
 @media (max-width: 1024px) {
   .product-card {
-    flex-basis: calc((100% - 1rem) / 2); /* 2 cards visible, rest scrolls */
+    flex-basis: calc((100% - 2rem) / 3); /* 3 cards visible, rest scrolls */
   }
 
   .section-header {
