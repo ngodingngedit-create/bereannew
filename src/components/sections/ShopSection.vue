@@ -38,7 +38,8 @@
               <div v-if="product.is_preorder" class="status-badge">PRE-ORDER</div>
             </div>
             <div v-if="discountPercent(product) > 0" class="discount-badge">-{{ discountPercent(product) }}%</div>
-            <img :src="product.image" :alt="product.title" class="product-image" />
+            <img :src="product.image" :alt="product.title" class="product-image primary-img" />
+            <img v-if="product.thumbnails && product.thumbnails[1]" :src="product.thumbnails[1]" :alt="product.title + ' hover'" class="product-image secondary-img" />
             <!-- Light sweep shine on hover (replaces the old View Details button) -->
             <div class="product-card-shine" aria-hidden="true"></div>
           </div>
@@ -214,6 +215,7 @@ const fetchProducts = async () => {
           promo_title: promoTitle,
           variant_id: variantId,
           image: images?.[0]?.image_url || '/slider/slider1.png',
+          thumbnails: (images && images.length > 0) ? images.map(img => img.image_url) : ['/slider/slider1.png'],
           colors: ['cream'],
           creator: {
             id: p.creator?.id,
@@ -520,7 +522,11 @@ const t = (key) => {
   height: 100%;
   object-fit: cover;
   border-radius: 12px;
-  transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  transition: opacity 0.3s ease, transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.product-image.secondary-img {
+  opacity: 0;
 }
 
 .badges-container {
@@ -624,6 +630,12 @@ const t = (key) => {
   .product-card:hover .product-image {
     transform: scale(1.06);
   }
+  .product-card:hover .product-image.primary-img {
+    opacity: 0;
+  }
+  .product-card:hover .product-image.secondary-img {
+    opacity: 1;
+  }
 }
 
 .product-info {
@@ -641,7 +653,9 @@ const t = (key) => {
   color: #111;
   line-height: 1.25;
   margin: 0;
-  min-height: 2.4rem; /* Two lines reserved so every card has the same height */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .product-price-row {

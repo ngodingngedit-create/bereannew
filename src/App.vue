@@ -7,6 +7,7 @@
           <HeroSection />
           <FeaturesSection />
           <ShopSection />
+          <TermsFaqSection />
           <EventSection v-if="false" />
         </div>
         <div v-else-if="currentPage === 'shop'" key="shop">
@@ -59,6 +60,7 @@ import Header from './components/Header.vue'
 import HeroSection from './components/sections/HeroSection.vue'
 import FeaturesSection from './components/sections/FeaturesSection.vue'
 import ShopSection from './components/sections/ShopSection.vue'
+import TermsFaqSection from './components/sections/TermsFaqSection.vue'
 import EventSection from './components/sections/EventSection.vue'
 import ShopPage from './components/ShopPage.vue'
 import CreatorPage from './components/CreatorPage.vue'

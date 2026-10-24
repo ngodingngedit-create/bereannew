@@ -293,7 +293,7 @@
                         <span style="font-size: 0.65rem; color: var(--color-mocca-muted);">Dikirim dari :</span>
                         <div style="display: flex; align-items: center; gap: 0.25rem; font-size: 0.7rem; color: var(--color-mocca-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">
                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 10px; height: 10px; color: var(--color-mocca-dark); flex-shrink: 0;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                          <span style="font-weight: 700;">TOKOMOCCA</span>, DKI Jakarta
+                          <span style="font-weight: 700;">{{ item.store_location?.store_name || item.store_location?.name || 'Berean book store' }}</span>, {{ item.store_location?.city || item.store_location?.address || 'Menara Kuningan Lantai P1' }}
                         </div>
                       </div>
                       

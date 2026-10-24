@@ -94,11 +94,11 @@ const toggleSearchInput = () => {
   width: 100%;
   background-color: var(--color-bg-light);
   border-top: 1px solid rgba(47, 78, 62, 0.08);
-  border-radius: 28px 28px 0 0;
-  box-shadow: 0 -12px 36px rgba(47, 78, 62, 0.16), 0 -3px 12px rgba(47, 78, 62, 0.08);
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -8px 24px rgba(47, 78, 62, 0.12), 0 -2px 8px rgba(47, 78, 62, 0.05);
   z-index: 9998;
-  padding: 0.45rem 0;
-  padding-bottom: calc(0.45rem + env(safe-area-inset-bottom, 0px));
+  padding: 0.25rem 0;
+  padding-bottom: calc(0.25rem + env(safe-area-inset-bottom, 0px));
   display: none; /* Hidden on desktop */
 }
 
@@ -119,7 +119,7 @@ const toggleSearchInput = () => {
   justify-content: center;
   background: none;
   border: none;
-  padding: 0.35rem 0;
+  padding: 0.2rem 0;
   color: var(--color-mocca-muted);
   cursor: pointer;
   position: relative;
@@ -135,7 +135,7 @@ const toggleSearchInput = () => {
   border-radius: 2px;
   background-color: var(--color-mocca-dark);
   position: absolute;
-  top: -0.65rem;
+  top: -0.35rem;
   left: 50%;
   transform: translateX(-50%) scaleX(0);
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -152,23 +152,23 @@ const toggleSearchInput = () => {
 }
 
 img.nav-icon {
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   object-fit: contain;
   display: block;
   flex-shrink: 0;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.1rem;
 }
 
 svg.nav-icon {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   object-fit: contain;
   display: block;
   flex-shrink: 0;
-  /* Samakan tinggi box ikon 48px agar label sejajar */
-  margin-top: 12px;
-  margin-bottom: calc(0.25rem + 12px);
+  /* Samakan tinggi box ikon 40px agar label sejajar */
+  margin-top: 9px;
+  margin-bottom: calc(0.1rem + 9px);
 }
 
 .nav-item.active .nav-icon {

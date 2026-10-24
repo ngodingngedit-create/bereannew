@@ -490,6 +490,10 @@ const t = (key) => {
   margin-bottom: 1.5rem;
   padding-bottom: 1.25rem;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1); /* divider between filtering and cards */
+  position: sticky;
+  top: 76px;
+  z-index: 500;
+  background-color: #fff;
 }
 
 .category-filters {
@@ -720,7 +724,9 @@ const t = (key) => {
   color: #111;
   line-height: 1.25;
   margin: 0;
-  min-height: 2.4rem; /* Two lines reserved so every card has the same height */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Price below title */
@@ -949,6 +955,7 @@ const t = (key) => {
   .shop-controls {
     margin-bottom: 1.25rem;
     padding-bottom: 1rem;
+    padding-top: 0.5rem;
   }
   .category-filters {
     justify-content: flex-start;

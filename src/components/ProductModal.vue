@@ -1522,7 +1522,10 @@ const formatPrice = (price) => {
 }
 .related-product-card .product-title {
   font-size: 0.85rem;
-  min-height: 2.2rem;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .related-product-card .product-price {
   font-size: 0.85rem;
@@ -1627,6 +1630,9 @@ const formatPrice = (price) => {
   color: #111;
   line-height: 1.25;
   margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .related-grid .product-price-row {
   display: flex;

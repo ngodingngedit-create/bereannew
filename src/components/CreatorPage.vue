@@ -1,150 +1,48 @@
 <template>
   <div class="creator-page-wrapper">
+
+    <!-- ===== Cover Banner (full-bleed) ===== -->
+    <div class="creator-cover-banner">
+      <img :src="creatorData?.banner_url || '/banner/banner.webp'" alt="cover banner" class="cover-image" />
+      <button class="cover-back-btn" @click="currentPage = 'home'" :aria-label="currentLang === 'id' ? 'Kembali' : 'Back'">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+
+      <!-- Profile logo sits on top of the banner -->
+      <div class="profile-logo-card">
+        <img v-if="creatorData?.image_url" :src="creatorData.image_url" alt="logo" />
+        <svg v-else class="creator-large-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="48" fill="#1C1C1C" />
+          <circle cx="50" cy="50" r="42" fill="none" stroke="#FFFFFF" stroke-width="1.5" />
+          <path d="M52.5,28.5 C56.5,28.5 59.5,31.5 59.5,36.5 C59.5,43.5 51.5,53.5 44.5,60.5 C42.5,62.5 40.5,64.5 38.5,64.5 C36.5,64.5 35.5,62.5 35.5,59.5 C35.5,54.5 41.5,45.5 49.5,36.5 C54.5,30.5 51.5,26.5 44.5,32.5 C38.5,37.5 33.5,44.5 33.5,50.5 C33.5,58.5 40.5,66.5 49.5,66.5 C57.5,66.5 64.5,60.5 64.5,55.5 C64.5,53.5 62.5,53.5 61.5,55.5 C58.5,60.5 53.5,62.5 49.5,62.5 C44.5,62.5 40.5,58.5 40.5,53.5 C40.5,47.5 46.5,38.5 52.5,28.5 Z" fill="#FFFFFF" />
+        </svg>
+      </div>
+    </div>
+
     <div class="creator-page-container">
-      
-      <!-- Breadcrumbs Navigation -->
-      <div class="breadcrumbs">
-        <span class="breadcrumb-item" @click="currentPage = 'home'">
-          <svg class="home-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-            <polyline points="9 22 9 12 15 12 15 22" />
-          </svg>
-          {{ currentLang === 'id' ? 'Beranda' : 'Home' }}
-        </span>
-        <span class="breadcrumb-separator">></span>
-        <span class="breadcrumb-item" @click="currentPage = 'shop'">
-          {{ currentLang === 'id' ? 'Kreator' : 'Creators' }}
-        </span>
-        <span class="breadcrumb-separator">></span>
-        <span class="breadcrumb-item active">{{ creatorData?.name || 'Kreator' }}</span>
-      </div>
 
-      <!-- Creator Profile Banner & Cover Hero -->
-      <div class="creator-profile-hero">
-        <!-- Cover Photo Banner (Wide banner) -->
-        <div class="creator-cover-banner">
-          <img :src="creatorData?.banner_url || '/deelestari_banner.png'" alt="cover banner" class="cover-image" />
-          
-          <!-- Profile Logo overlapping bottom-left edge -->
-          <div class="profile-logo-overlap-container">
-            <div class="profile-logo-card">
-              <img v-if="creatorData?.image_url" :src="creatorData.image_url" alt="logo" style="width: 100%; height: 100%; object-fit: cover;" />
-              <svg v-else class="creator-large-logo" viewBox="0 0 100 100" width="76" height="76" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="50" cy="50" r="48" fill="#1C1C1C" />
-                <circle cx="50" cy="50" r="42" fill="none" stroke="#FFFFFF" stroke-width="1.5" />
-                <path d="M52.5,28.5 C56.5,28.5 59.5,31.5 59.5,36.5 C59.5,43.5 51.5,53.5 44.5,60.5 C42.5,62.5 40.5,64.5 38.5,64.5 C36.5,64.5 35.5,62.5 35.5,59.5 C35.5,54.5 41.5,45.5 49.5,36.5 C54.5,30.5 51.5,26.5 44.5,32.5 C38.5,37.5 33.5,44.5 33.5,50.5 C33.5,58.5 40.5,66.5 49.5,66.5 C57.5,66.5 64.5,60.5 64.5,55.5 C64.5,53.5 62.5,53.5 61.5,55.5 C58.5,60.5 53.5,62.5 49.5,62.5 C44.5,62.5 40.5,58.5 40.5,53.5 C40.5,47.5 46.5,38.5 52.5,28.5 Z" fill="#FFFFFF" />
-              </svg>
-            </div>
-          </div>
+      <!-- ===== Identity + Actions ===== -->
+      <div class="creator-header">
+        <div class="creator-header-left">
+          <h1 class="creator-name-bold">{{ creatorData?.name || 'Loading...' }}</h1>
+          <span class="creator-member-since">{{ currentLang === 'id' ? 'Member sejak 2024' : 'Member since 2024' }}</span>
         </div>
 
-        <!-- Info Area below Banner Cover -->
-        <div class="creator-profile-header-details">
-          <!-- Left side: Name and status -->
-          <div class="creator-header-left">
-            <h1 class="creator-name-bold">{{ creatorData?.name || 'Loading...' }}</h1>
-            <span class="creator-member-since">{{ currentLang === 'id' ? 'Member sejak 2024' : 'Member since 2024' }}</span>
-          </div>
-
-          <!-- Right side: Buttons with rounded 8px -->
-          <div class="creator-header-right">
-            <button class="btn-follow">{{ currentLang === 'id' ? 'Follow' : 'Follow' }}</button>
-            <button class="btn-message">{{ currentLang === 'id' ? 'Kirim Pesan' : 'Send Message' }}</button>
-          </div>
-        </div>
-
-        <!-- Additional Info: Bio, Social, Stats -->
-        <div class="creator-additional-info-row">
-          <div class="info-row-left">
-            <p class="creator-bio">
-              {{ creatorData?.description || (currentLang === 'id' 
-                ? 'Kreator yang menghadirkan karya, cerita, dan inspirasi untuk keseharianmu.' 
-                : 'A creator bringing stories, art, and daily inspiration to your life.') }}
-            </p>
-            <div class="creator-social-links">
-              <a href="#" class="social-icon" aria-label="Instagram">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-                  <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-                </svg>
-              </a>
-              <a href="#" class="social-icon" aria-label="X (Twitter)">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M4 4l11.733 16h4.267l-11.733 -16z" />
-                  <path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772" />
-                </svg>
-              </a>
-              <a href="#" class="social-icon" aria-label="YouTube">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 0 0-1.95 1.96A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"></path>
-                  <polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02"></polygon>
-                </svg>
-              </a>
-            </div>
-          </div>
-
-          <div class="info-row-right">
-            <!-- 1. Produk -->
-            <div class="stat-item">
-              <svg class="stat-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-                <line x1="3" y1="6" x2="21" y2="6"></line>
-                <path d="M16 10a4 4 0 0 1-8 0"></path>
-              </svg>
-              <span class="stat-value"><strong>{{ products.length }}</strong> {{ currentLang === 'id' ? 'Produk' : 'Products' }}</span>
-            </div>
-
-            <!-- 2. Pengikut -->
-            <div class="stat-item" v-if="false">
-              <svg class="stat-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                <circle cx="9" cy="7" r="4"></circle>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-              </svg>
-              <span class="stat-value"><strong>24.8K</strong> {{ currentLang === 'id' ? 'Pengikut' : 'Followers' }}</span>
-            </div>
-
-            <!-- 3. Rating -->
-            <div class="stat-item" v-if="false">
-              <svg class="stat-icon star-icon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-              </svg>
-              <span class="stat-value"><strong>4.9</strong> (1.2K {{ currentLang === 'id' ? 'rating' : 'ratings' }})</span>
-            </div>
-
-            <!-- 4. Terjual -->
-            <div class="stat-item">
-              <svg class="stat-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="9" cy="21" r="1"></circle>
-                <circle cx="20" cy="21" r="1"></circle>
-                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-              </svg>
-              <span class="stat-value"><strong>{{ totalSold }}</strong> {{ currentLang === 'id' ? 'Terjual' : 'Sold' }}</span>
-            </div>
-          </div>
+        <div class="creator-header-right">
+          <button class="btn-follow">Follow</button>
+          <button class="btn-message">{{ currentLang === 'id' ? 'Kirim Pesan' : 'Pesan' }}</button>
         </div>
       </div>
+
+      <!-- ===== Product Listing (always visible) ===== -->
+      <div class="tab-panel">
 
       <!-- Filter & Category Bar -->
       <div class="filter-category-bar">
-        <!-- Categories Tab List -->
-        <div class="categories-tabs">
-          <button 
-            v-for="cat in categories" 
-            :key="cat.id" 
-            class="category-tab-btn" 
-            :class="{ active: activeCategory === cat.id }"
-            @click="activeCategory = cat.id"
-          >
-            {{ currentLang === 'id' ? cat.nameId : cat.nameEn }}
-            <span v-if="activeCategory === cat.id" class="tab-indicator"></span>
-          </button>
-        </div>
-
         <!-- Right Side Controls: Dropdown & Layout Toggles -->
-        <div class="controls-right">
+        <div class="controls-right" style="margin-left: auto;">
           <div class="sort-dropdown-container">
             <select v-model="sortBy" class="sort-select" aria-label="Sort products">
               <option value="newest">{{ currentLang === 'id' ? 'Terbaru' : 'Newest' }}</option>
@@ -212,70 +110,32 @@
         >
           <!-- Image Container -->
           <div class="product-image-container">
-            <img :src="product.image" :alt="product.title" class="product-image" />
-            <div class="product-card-overlay">
-              <button class="view-details-btn" @click.stop="openModal(product)">
-                {{ currentLang === 'id' ? 'Lihat Detail' : 'View Details' }}
-              </button>
+            <div class="badges-container">
+              <div v-if="product.isPreorder" class="status-badge">PRE-ORDER</div>
+              <div v-else-if="product.isSoldOut" class="status-badge">{{ currentLang === 'id' ? 'HABIS' : 'SOLD OUT' }}</div>
             </div>
+            <img :src="product.image" :alt="product.title" class="product-image primary-img" />
+            <!-- Light sweep shine on hover (same as homepage) -->
+            <div class="product-card-shine" aria-hidden="true"></div>
           </div>
 
           <!-- Product Details -->
-          <div class="product-info-wrapper">
+          <div class="product-info">
             <h3 class="product-title">{{ product.title }}</h3>
-            
             <div class="product-price-row">
               <span class="product-price">{{ formatPrice(product.price) }}</span>
             </div>
-
-            <div class="product-meta-row">
-              <span v-if="product.totalReview > 0" class="product-meta-item">★ {{ product.rating }} ({{ product.totalReview }})</span>
-              <span class="product-meta-item">{{ product.totalSold }} {{ currentLang === 'id' ? 'terjual' : 'sold' }}</span>
+            <div v-if="product.rating" class="product-meta">
+              <span class="meta-rating">
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"/></svg>
+                {{ Number(product.rating).toFixed(1) }}
+              </span>
+              <span class="meta-dot">•</span>
+              <span>{{ product.totalSold }} {{ currentLang === 'id' ? 'terjual' : 'sold' }}</span>
             </div>
-
-            <div v-if="product.variants.length > 1" class="variant-chips">
-              <span
-                v-for="v in product.variants"
-                :key="v.id"
-                class="variant-chip"
-                :class="{ 'is-soldout': v.soldOut }"
-              >{{ v.name }}</span>
-            </div>
-
-            <div class="product-badges">
-              <span v-if="product.isSoldOut" class="badge badge-soldout">{{ currentLang === 'id' ? 'Habis' : 'Sold out' }}</span>
-              <span v-else-if="product.isPreorder" class="badge badge-preorder">Pre-order</span>
-              <span v-if="product.has_store_location" class="badge">{{ product.has_store_location.store_name }}</span>
-            </div>
-
-
-            <!-- Quantity Selector Button -->
-            <div class="product-actions-row">
-              <div class="card-qty-selector">
-                <button 
-                  class="card-qty-btn" 
-                  @click.stop="changeQty(product, selectedColors[product.id], -1)" 
-                  :disabled="getQty(product.id, selectedColors[product.id]) === 0"
-                  aria-label="Decrease quantity"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-icon">
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                  </svg>
-                </button>
-                <span class="card-qty-value" :class="{ 'is-zero': getQty(product.id, selectedColors[product.id]) === 0 }">
-                  {{ getQty(product.id, selectedColors[product.id]) }}
-                </span>
-                <button 
-                  class="card-qty-btn" 
-                  @click.stop="changeQty(product, selectedColors[product.id], 1)"
-                  aria-label="Increase quantity"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-icon">
-                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                  </svg>
-                </button>
-              </div>
+            <div v-if="product.has_store_location" class="product-location">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              <span class="product-location-text">{{ product.has_store_location.store_name }}</span>
             </div>
           </div>
 
@@ -285,15 +145,10 @@
           <!-- Creator Footer -->
           <div class="card-creator-section">
             <div class="creator-avatar-wrapper">
-              <img v-if="creatorData?.image_url" :src="creatorData.image_url" alt="avatar" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;" />
-              <svg v-else class="creator-avatar" viewBox="0 0 100 100" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="50" cy="50" r="48" fill="#1C1C1C" />
-                <circle cx="50" cy="50" r="42" fill="none" stroke="#FFFFFF" stroke-width="1.5" />
-                <path d="M52.5,28.5 C56.5,28.5 59.5,31.5 59.5,36.5 C59.5,43.5 51.5,53.5 44.5,60.5 C42.5,62.5 40.5,64.5 38.5,64.5 C36.5,64.5 35.5,62.5 35.5,59.5 C35.5,54.5 41.5,45.5 49.5,36.5 C54.5,30.5 51.5,26.5 44.5,32.5 C38.5,37.5 33.5,44.5 33.5,50.5 C33.5,58.5 40.5,66.5 49.5,66.5 C57.5,66.5 64.5,60.5 64.5,55.5 C64.5,53.5 62.5,53.5 61.5,55.5 C58.5,60.5 53.5,62.5 49.5,62.5 C44.5,62.5 40.5,58.5 40.5,53.5 C40.5,47.5 46.5,38.5 52.5,28.5 Z" fill="#FFFFFF" />
-              </svg>
+              <img :src="creatorData?.image_url || '/logo/logo.webp'" :alt="creatorData?.name" class="creator-avatar" />
             </div>
             <div class="creator-info">
-              <span class="creator-label">{{ creatorData?.creator_title || 'Official Store' }}</span>
+              <span class="creator-label">{{ currentLang === 'id' ? 'Disediakan oleh' : 'Provided by' }}</span>
               <div class="creator-name-wrapper" style="display: flex; align-items: center; gap: 4px;">
                 <span class="creator-name">{{ creatorData?.name || 'Loading...' }}</span>
                 <svg v-if="creatorData?.is_verified == 1" width="14" height="14" viewBox="0 0 24 24" fill="#3b82f6" stroke="none" xmlns="http://www.w3.org/2000/svg">
@@ -305,7 +160,45 @@
         </div>
       </div>
 
-      
+      <!-- Pagination -->
+      <nav
+        v-if="totalPages > 1 && filteredProducts.length > 0"
+        class="pagination-container"
+        aria-label="Pagination"
+      >
+        <button
+          class="pagination-arrow"
+          :disabled="currentPageNum <= 1 || isLoading"
+          @click="goToPage(currentPageNum - 1)"
+          aria-label="Halaman sebelumnya"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </button>
+
+        <template v-for="(p, idx) in paginationPages" :key="`${p}-${idx}`">
+          <span v-if="p === '...'" class="pagination-ellipsis">&hellip;</span>
+          <button
+            v-else
+            class="pagination-num"
+            :class="{ active: p === currentPageNum }"
+            :disabled="isLoading"
+            @click="goToPage(p)"
+          >
+            {{ p }}
+          </button>
+        </template>
+
+        <button
+          class="pagination-arrow"
+          :disabled="currentPageNum >= totalPages || isLoading"
+          @click="goToPage(currentPageNum + 1)"
+          aria-label="Halaman berikutnya"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+      </nav>
+
+      </div>
 
     </div>
 
@@ -353,60 +246,68 @@ const categories = [
 
 const products = ref([]);
 const selectedColors = ref({});
+const totalPages = ref(1);
 
-const fetchCreatorData = async () => {
+const fetchCreatorData = async (page = 1) => {
   const apiUrl = import.meta.env.VITE_API_URL || 'https://api.kolektix.com';
-  
 
   isLoading.value = true;
   try {
-    const res = await fetch(`${apiUrl}/api/product?creator_id=187`);
+    const res = await fetch(`${apiUrl}/api/creator-maping-product/berean.id?page=${page}`);
     const json = await res.json();
-    const pData = Array.isArray(json) ? json : json.data || [];
+    const pagination = json.products || {};
+    const affiliate = json.affiliate_creators?.[0] || null;
+    const pData = Array.isArray(pagination.data) ? pagination.data : [];
 
-    creatorData.value = pData[0]?.creator ?? null;
+    creatorData.value = affiliate ?? pData[0]?.creator ?? null;
 
-    products.value = pData.map(p => {
-      const variants = p.product_varian || [];
-      let price = parseFloat(p.price) || 0;
-      if (price === 0 && variants.length > 0) {
-        price = parseFloat(variants[0].price) || 0;
-      }
-      return {
-        id: p.id,
-        slug: p.slug,
-        category: 'apparel',
-        title: p.product_name,
-        description: p.description,
-        sku: p.sku,
-        price,
-        variant_id: variants[0]?.id ?? null,
-        variants: variants.map(v => ({
-          id: v.id,
-          name: v.varian_name,
-          price: parseFloat(v.price) || 0,
-          stock: v.stock_qty,
-          soldOut: v.is_soldout == 1,
-        })),
-        image: p.product_image?.[0]?.image_url || '/mocca_group_tee.png',
-        colors: ['cream'],
-        creator: {
-          name: p.creator?.name,
-          image_url: p.creator?.image_url,
-          avatarInitial: p.creator?.name?.[0] || 'M',
-          creator_title: 'Official Store',
-        },
-        totalSold: p.total_sold || 0,
-        rating: p.average_star,
-        totalReview: p.total_review || 0,
-        isSoldOut: p.is_soldout == 1,
-        isPreorder: p.is_preorder == 1,
-        has_store_location: p.has_store_location,
-        admin_fee: parseFloat(p.admin_fee) || 0,
-      };
-    });
+    products.value = pData
+      .filter(p => p.product_status_id == 2)
+      .map(p => {
+        const variants = p.varians || p.product_varian || [];
+        let price = parseFloat(p.price) || 0;
+        if (price === 0 && variants.length > 0) {
+          price = parseFloat(variants[0].price) || 0;
+        }
+        const images = p.images || p.product_image || [];
+        return {
+          id: p.id,
+          slug: p.slug,
+          category: 'apparel',
+          title: p.product_name,
+          description: p.description,
+          sku: p.sku,
+          price,
+          variant_id: variants[0]?.id ?? null,
+          variants: variants.map(v => ({
+            id: v.id,
+            name: v.varian_name,
+            price: parseFloat(v.price) || 0,
+            stock: v.stock_qty,
+            soldOut: v.is_soldout == 1,
+          })),
+          image: images[0]?.image_url || '/mocca_group_tee.png',
+          colors: ['cream'],
+          creator: {
+            name: p.creator?.name,
+            image_url: p.creator?.image_url,
+            avatarInitial: p.creator?.name?.[0] || 'M',
+            creator_title: 'Official Store',
+          },
+          totalSold: p.total_sold || 0,
+          rating: p.average_star ? parseFloat(String(p.average_star).replace(',', '.')) : null,
+          totalReview: p.total_review || 0,
+          isSoldOut: p.is_soldout == 1,
+          isPreorder: p.is_preorder == 1,
+          has_store_location: p.store_location || p.pickup_store || p.has_store_location,
+          admin_fee: parseFloat(p.admin_fee) || 0,
+        };
+      });
 
-    selectedColors.value = Object.fromEntries(pData.map(p => [p.id, 'cream']));
+    currentPageNum.value = pagination.current_page || page;
+    totalPages.value = pagination.last_page || 1;
+
+    selectedColors.value = Object.fromEntries(products.value.map(p => [p.id, 'cream']));
   } catch (err) {
     console.error('Failed to fetch creator data:', err);
   } finally {
@@ -419,7 +320,26 @@ onMounted(() => {
 });
 
 watch(activeCreatorSlug, () => {
-  fetchCreatorData();
+  fetchCreatorData(1);
+});
+
+const goToPage = (page) => {
+  if (isLoading.value) return;
+  if (page < 1 || page > totalPages.value || page === currentPageNum.value) return;
+  fetchCreatorData(page);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+const paginationPages = computed(() => {
+  const total = totalPages.value;
+  const current = currentPageNum.value;
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const pages = [1];
+  if (current > 3) pages.push('...');
+  for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) pages.push(i);
+  if (current < total - 2) pages.push('...');
+  pages.push(total);
+  return pages;
 });
 
 // Helper actions
@@ -490,12 +410,51 @@ const totalSold = computed(() => products.value.reduce((sum, p) => sum + p.total
 
 <style scoped>
 .creator-page-wrapper {
-  background-color: #F5F2ED;
+  background-color: var(--color-bg-cream);
   min-height: 100vh;
   width: 100%;
-  padding-top: 2rem;
   padding-bottom: 5rem;
   transition: var(--transition-smooth);
+}
+
+/* Full-bleed cover banner */
+.creator-cover-banner {
+  position: relative;
+  width: 100%;
+  height: 280px;
+  background-color: var(--color-mocca-border);
+  overflow: hidden;
+}
+
+.creator-cover-banner .cover-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.cover-back-btn {
+  position: absolute;
+  top: 1.25rem;
+  left: 1.5rem;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.92);
+  color: var(--color-mocca-dark);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+  transition: var(--transition-smooth);
+  z-index: 6;
+}
+
+.cover-back-btn:hover {
+  background-color: #FFFFFF;
+  transform: translateX(-2px);
 }
 
 .creator-page-container {
@@ -504,7 +463,38 @@ const totalSold = computed(() => products.value.reduce((sum, p) => sum + p.total
   padding: 0 3rem;
   display: flex;
   flex-direction: column;
+  width: 100%;
 }
+
+/* Logo card sits on top of the banner */
+.profile-logo-card {
+  position: absolute;
+  left: 3rem;
+  bottom: 0.75rem;
+  z-index: 5;
+  background-color: #FFFFFF;
+  border: 3px solid #FFFFFF;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(47, 78, 62, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 96px;
+  height: 96px;
+  overflow: hidden;
+}
+
+.profile-logo-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.creator-large-logo {
+  width: 100%;
+  height: 100%;
+}
+
 
 /* Product meta: rating, sold, variants, status */
 .product-meta-row {
@@ -561,96 +551,13 @@ const totalSold = computed(() => products.value.reduce((sum, p) => sum + p.total
   color: var(--color-mocca-dark);
 }
 
-/* Breadcrumbs Styling */
-.breadcrumbs {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-family: var(--font-body);
-  font-size: 0.85rem;
-  color: var(--color-mocca-muted);
-  margin-bottom: 2rem;
-}
 
-.breadcrumb-item {
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  transition: var(--transition-smooth);
-}
-
-.breadcrumb-item:hover:not(.active) {
-  color: var(--color-mocca-dark);
-}
-
-.breadcrumb-item.active {
-  color: var(--color-mocca-dark);
-  font-weight: 500;
-  cursor: default;
-}
-
-.breadcrumb-separator {
-  color: var(--color-mocca-muted);
-  opacity: 0.6;
-}
-
-.home-icon {
-  stroke-width: 1.5;
-  color: var(--color-mocca-muted);
-}
-
-/* Creator Profile Banner & Cover Hero */
-.creator-profile-hero {
-  background-color: var(--color-bg-light);
-  border: 1px solid var(--color-mocca-border);
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 4px 30px rgba(47, 78, 62, 0.02);
-  margin-bottom: 2.5rem;
-  display: flex;
-  flex-direction: column;
-}
-
-.creator-cover-banner {
-  position: relative;
-  width: 100%;
-  height: 280px;
-  background-color: #ECE7DF;
-}
-
-.creator-cover-banner .cover-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.profile-logo-overlap-container {
-  position: absolute;
-  bottom: -40px;
-  left: 3rem;
-  z-index: 5;
-}
-
-.profile-logo-card {
-  background-color: #FFFFFF;
-  border: 4px solid #FFFFFF;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 96px;
-  height: 96px;
-  overflow: hidden;
-}
-
-.creator-profile-header-details {
-  padding: 3.5rem 3rem 1.25rem 3rem; /* Top padding leaves room for overlap */
+.creator-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  border-bottom: 1px solid rgba(47, 78, 62, 0.06);
+  gap: 1.5rem;
+  margin-top: 1.5rem;
 }
 
 .creator-header-left {
@@ -660,32 +567,33 @@ const totalSold = computed(() => products.value.reduce((sum, p) => sum + p.total
 
 .creator-header-left .creator-name-bold {
   font-family: var(--font-heading);
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: 700;
   color: var(--color-mocca-dark);
-  line-height: 1.1;
-  margin-bottom: 0.25rem;
+  line-height: 1.15;
+  margin-bottom: 0.2rem;
 }
 
 .creator-header-left .creator-member-since {
   font-family: var(--font-body);
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   color: var(--color-mocca-muted);
 }
 
 .creator-header-right {
   display: flex;
-  gap: 0.75rem;
+  gap: 0.6rem;
+  flex-shrink: 0;
 }
 
 /* Follow Button: Filled Berean.id Dark */
 .creator-header-right .btn-follow {
   background-color: var(--color-mocca-dark);
   color: var(--color-bg-light);
-  border-radius: 8px; /* Rounded 8px */
-  padding: 0.65rem 2rem;
+  border-radius: 999px;
+  padding: 0.45rem 1.5rem;
   font-family: var(--font-body);
-  font-size: 0.9rem;
+  font-size: 0.82rem;
   font-weight: 600;
   border: none;
   cursor: pointer;
@@ -703,10 +611,10 @@ const totalSold = computed(() => products.value.reduce((sum, p) => sum + p.total
   background-color: var(--color-bg-light);
   color: var(--color-mocca-dark);
   border: 1px solid var(--color-mocca-border);
-  border-radius: 8px; /* Rounded 8px */
-  padding: 0.65rem 2rem;
+  border-radius: 999px;
+  padding: 0.45rem 1.5rem;
   font-family: var(--font-body);
-  font-size: 0.9rem;
+  font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
   transition: var(--transition-smooth);
@@ -716,89 +624,6 @@ const totalSold = computed(() => products.value.reduce((sum, p) => sum + p.total
   background-color: rgba(142, 125, 115, 0.08);
   border-color: var(--color-mocca-dark);
   transform: translateY(-2px);
-}
-
-.creator-additional-info-row {
-  padding: 1.5rem 3rem 2rem 3rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 4rem;
-}
-
-.info-row-left {
-  max-width: 60%;
-}
-
-.info-row-left .creator-bio {
-  font-family: var(--font-body);
-  font-size: 0.95rem;
-  color: var(--color-mocca-dark);
-  opacity: 0.85;
-  line-height: 1.6;
-  margin-bottom: 1.25rem;
-}
-
-.info-row-left .creator-social-links {
-  display: flex;
-  gap: 0.75rem;
-  align-items: center;
-}
-
-.info-row-left .social-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 1px solid var(--color-mocca-border);
-  color: var(--color-mocca-dark);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: var(--transition-smooth);
-}
-
-.info-row-left .social-icon:hover {
-  background-color: var(--color-mocca-dark);
-  color: var(--color-bg-light);
-  border-color: var(--color-mocca-dark);
-  transform: translateY(-2px);
-}
-
-.info-row-right {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.25rem 2rem;
-  align-items: center;
-  justify-content: flex-end;
-  margin-left: auto;
-}
-
-.info-row-right .stat-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-family: var(--font-body);
-  font-size: 0.95rem;
-  color: var(--color-mocca-dark);
-}
-
-.info-row-right .stat-icon {
-  color: var(--color-mocca-muted);
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.info-row-right .star-icon {
-  color: #E6A100;
-  fill: #E6A100;
-}
-
-.info-row-right .stat-value strong {
-  font-weight: 700;
-  color: var(--color-mocca-dark);
-  
 }
 
 /* Filter & Category Bar */
@@ -811,10 +636,6 @@ const totalSold = computed(() => products.value.reduce((sum, p) => sum + p.total
   margin-bottom: 2rem;
 }
 
-.categories-tabs {
-  display: flex;
-  gap: 2rem;
-}
 
 .category-tab-btn {
   font-family: var(--font-body);
@@ -909,11 +730,11 @@ const totalSold = computed(() => products.value.reduce((sum, p) => sum + p.total
   color: var(--color-bg-light);
 }
 
-/* Products Container Grid View */
+/* Products Container Grid View — 6 per row, same as homepage */
 .products-container.grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 2rem;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 1rem;
   margin-bottom: 3.5rem;
 }
 
@@ -925,36 +746,88 @@ const totalSold = computed(() => products.value.reduce((sum, p) => sum + p.total
   margin-bottom: 3.5rem;
 }
 
-/* Product Card Styling */
+/* Product Card — identical to homepage ShopSection card */
 .product-card {
-  background-color: var(--color-bg-light);
-  border-radius: 8px;
-  border: 1px solid rgba(47, 78, 62, 0.15);
-  overflow: hidden;
-  box-shadow: 0 4px 20px rgba(47, 78, 62, 0.02);
-  transition: var(--transition-smooth);
+  background: none;
+  border: none;
+  border-radius: 0;
+  overflow: visible;
+  box-shadow: none;
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: auto;
+  min-width: 0;
   cursor: pointer;
+  transition: var(--transition-smooth);
 }
 
 .product-card:hover {
-  transform: translateY(-6px);
-  border-color: var(--color-mocca-dark);
-  box-shadow: 0 12px 25px rgba(47, 78, 62, 0.06);
+  transform: none;
+  border-color: transparent;
+  box-shadow: none;
 }
 
 /* Grid Layout overrides */
 .grid .product-image-container {
   width: 100%;
   aspect-ratio: 1 / 1;
-  overflow: hidden;
-  background-color: #F8F5F0;
+  height: auto;
+  position: relative;
+  border-radius: 12px;
+  background-color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
+  overflow: hidden;
+}
+
+/* Shine sweep on hover — slides in and out smoothly */
+.product-card-shine {
+  position: absolute;
+  top: -10%;
+  bottom: -10%;
+  left: 0;
+  width: 55%;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.25) 35%,
+    rgba(255, 255, 255, 0.9) 50%,
+    rgba(255, 255, 255, 0.25) 65%,
+    transparent 100%
+  );
+  transform: translateX(-180%) skewX(-12deg);
+  transition: transform 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.product-card:hover .product-card-shine {
+  transform: translateX(280%) skewX(-12deg);
+}
+
+/* Badges on the image (top-left) */
+.badges-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 3;
+  align-items: flex-start;
+}
+
+.status-badge {
+  background-color: #111;
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  padding: 0.3rem 0.7rem 0.3rem 0.6rem;
+  border-radius: 0 0 8px 0;
 }
 
 /* List Layout overrides */
@@ -972,7 +845,7 @@ const totalSold = computed(() => products.value.reduce((sum, p) => sum + p.total
   overflow: hidden;
 }
 
-.list .product-info-wrapper {
+.list .product-info {
   padding: 1.5rem 2rem;
   justify-content: center;
 }
@@ -1017,88 +890,112 @@ const totalSold = computed(() => products.value.reduce((sum, p) => sum + p.total
   align-items: center;
 }
 
-/* Image overlays */
-.product-card-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(47, 78, 62, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: var(--transition-smooth);
-  z-index: 2;
-  backdrop-filter: blur(2px);
-}
-
-.product-card:hover .product-card-overlay {
-  opacity: 1;
-}
-
-.view-details-btn {
-  background-color: var(--color-bg-light);
-  color: var(--color-mocca-dark);
-  border: 1px solid var(--color-mocca-dark);
-  font-family: var(--font-body);
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 0.5rem 1.1rem;
-  border-radius: 20px;
-  box-shadow: 0 4px 12px rgba(47, 78, 62, 0.1);
-  transform: translateY(10px);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.product-card:hover .view-details-btn {
-  transform: translateY(0);
-}
-
-.view-details-btn:hover {
-  background-color: var(--color-mocca-dark);
-  color: var(--color-bg-light);
-}
-
+/* Product image (matching homepage) */
 .product-image {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: var(--transition-smooth);
+  border-radius: 12px;
+  transition: opacity 0.3s ease, transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-.product-card:hover .product-image {
-  transform: scale(1.03);
+@media (hover: hover) and (pointer: fine) {
+  .product-card:hover .product-image {
+    transform: scale(1.06);
+  }
 }
 
-/* Product Info */
-.product-info-wrapper {
-  padding: 0.85rem;
+/* Product Info (matching homepage card style) */
+.product-info {
+  padding: 0.35rem 0.25rem 0.25rem;
   display: flex;
   flex-direction: column;
   flex-grow: 1;
+  gap: 0.1rem;
 }
 
 .product-title {
   font-family: var(--font-body);
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--color-mocca-dark);
-  margin-bottom: 0.2rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #111;
+  line-height: 1.25;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .product-price-row {
   display: flex;
-  justify-content: flex-end;
-  margin-bottom: 0.35rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  margin-top: 0.05rem;
 }
 
 .product-price {
   font-family: var(--font-body);
-  font-size: 0.9rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #111;
+  white-space: nowrap;
+  margin: 0;
+}
+
+.product-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  color: var(--color-mocca-muted);
+  margin-top: 0.15rem;
+}
+
+.meta-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  color: #111;
   font-weight: 600;
-  color: var(--color-mocca-dark);
+}
+
+.meta-rating svg {
+  width: 13px;
+  height: 13px;
+  color: #f5a524;
+}
+
+.meta-dot {
+  opacity: 0.5;
+}
+
+.product-location {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  color: var(--color-mocca-muted);
+  margin-top: 0.1rem;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.product-location svg {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}
+
+.product-location-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .product-colors-row {
@@ -1217,6 +1114,14 @@ const totalSold = computed(() => products.value.reduce((sum, p) => sum + p.total
   justify-content: center;
 }
 
+.creator-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+
 .creator-info {
   display: flex;
   flex-direction: column;
@@ -1309,6 +1214,17 @@ const totalSold = computed(() => products.value.reduce((sum, p) => sum + p.total
   border-color: var(--color-mocca-dark);
 }
 
+.pagination-ellipsis {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  color: var(--color-mocca-muted);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  user-select: none;
+}
+
 /* Responsive Adjustments */
 @media (max-width: 1200px) {
   .creator-page-container {
@@ -1317,104 +1233,79 @@ const totalSold = computed(() => products.value.reduce((sum, p) => sum + p.total
 }
 
 @media (max-width: 1024px) {
-  .creator-banner-card {
-    padding: 2rem;
-  }
-
-  .banner-left {
-    max-width: 65%;
-  }
-
   .products-container.grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.5rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
   }
 }
 
 @media (max-width: 768px) {
   .creator-page-wrapper {
-    padding-top: 1rem;
     padding-bottom: 4rem;
   }
 
   .creator-page-container {
-    padding: 0 1.5rem;
-  }
-
-  .creator-profile-hero {
-    border-radius: 12px;
+    padding: 0 1.25rem;
   }
 
   .creator-cover-banner {
-    height: 160px;
+    height: auto; /* no crop on mobile: let the full banner show */
   }
 
-  .profile-logo-overlap-container {
-    bottom: -30px;
-    left: 1.5rem;
+  .creator-cover-banner .cover-image {
+    height: auto;
+    object-fit: contain;
+  }
+
+  .cover-back-btn {
+    top: 0.85rem;
+    left: 0.85rem;
+    width: 36px;
+    height: 36px;
   }
 
   .profile-logo-card {
-    width: 72px;
-    height: 72px;
+    left: 1rem;
+    bottom: 0.4rem;
+    width: 64px;
+    height: 64px;
     border-width: 3px;
-    border-radius: 8px;
+    border-radius: 10px;
   }
 
-  .creator-large-logo {
-    width: 56px;
-    height: 56px;
+  .creator-header {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1rem;
   }
 
-  .creator-profile-header-details {
-    padding: 2.5rem 1.5rem 1.25rem 1.5rem;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1.25rem;
+  .creator-header-left {
+    flex: 1 1 auto;
+    min-width: 0;
   }
 
   .creator-header-left .creator-name-bold {
-    font-size: 2rem;
+    font-size: 1.35rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
+  .creator-header-left .creator-member-since {
+    font-size: 0.75rem;
+  }
+
+
+
   .creator-header-right {
-    width: auto;
-    display: flex;
-    gap: 0.5rem;
+    gap: 0.4rem;
   }
 
   .creator-header-right button {
     flex: none;
-    padding: 0.35rem 1rem;
-    font-size: 0.75rem;
-    height: 32px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    padding: 0.35rem 0.85rem;
+    font-size: 0.72rem;
     white-space: nowrap;
-  }
-
-  .creator-additional-info-row {
-    padding: 1.25rem 1.5rem 1.75rem 1.5rem;
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-
-  .info-row-left {
-    max-width: 100%;
-  }
-
-  .info-row-right {
-    width: 100%;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem 1.5rem;
-    justify-content: stretch;
-    margin-left: 0;
-  }
-
-  .info-row-right .stat-item {
-    font-size: 0.85rem;
   }
 
   .filter-category-bar {
@@ -1424,44 +1315,15 @@ const totalSold = computed(() => products.value.reduce((sum, p) => sum + p.total
     padding-bottom: 1rem;
   }
 
-  .categories-tabs {
-    width: 100%;
-    overflow-x: auto;
-    padding-bottom: 0.5rem;
-    gap: 1.5rem;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
-    scrollbar-color: var(--color-mocca-border) transparent;
-  }
 
-  .categories-tabs::-webkit-scrollbar {
-    height: 3px;
-  }
-
-  .categories-tabs::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  .categories-tabs::-webkit-scrollbar-thumb {
-    background-color: var(--color-mocca-border);
-    border-radius: 4px;
-  }
-
-  .category-tab-btn {
-    white-space: nowrap;
-  }
-
-  .tab-indicator {
-    bottom: -0.65rem;
-  }
 
   .controls-right {
     display: none !important;
   }
 
   .products-container.grid {
-    grid-template-columns: 1fr; /* 1 Column on Mobile */
-    gap: 1.5rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr)); /* 2 columns, same as homepage mobile */
+    gap: 0.85rem;
   }
 
   /* List view on Mobile overrides to normal grid card stacking */
@@ -1474,7 +1336,7 @@ const totalSold = computed(() => products.value.reduce((sum, p) => sum + p.total
     aspect-ratio: 1 / 1;
   }
 
-  .list .product-info-wrapper {
+  .list .product-info {
     padding: 0.85rem;
   }
 
