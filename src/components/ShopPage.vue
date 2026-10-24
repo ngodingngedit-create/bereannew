@@ -2,9 +2,9 @@
   <div class="shop-page-wrapper">
     <!-- Header Spacing to sit perfectly below sticky header -->
     <div class="shop-page-container">
-      <!-- Controls: Filters -->
+      <!-- Controls: Filters + Search -->
       <div class="shop-controls">
-        <!-- Category Filters (same underline style as homepage filter-bar) -->
+        <!-- Category Filters (left side on desktop) -->
         <nav class="category-filters" aria-label="Filter product">
           <button 
             v-for="cat in categories" 
@@ -16,6 +16,29 @@
             {{ currentLang === 'id' ? cat.nameId : cat.nameEn }}
           </button>
         </nav>
+
+        <!-- Search Bar (right side on desktop) -->
+        <div class="shop-page-search">
+          <div class="shop-search-bar">
+            <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input
+              v-model="localSearchQuery"
+              type="text"
+              :placeholder="currentLang === 'id' ? 'Cari produk...' : 'Search products...'"
+              class="shop-search-input"
+              @input="handleLocalSearch"
+            />
+            <button v-if="localSearchQuery" class="clear-search-btn" @click="clearLocalSearch">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- Empty State -->
@@ -155,7 +178,20 @@ const categories = [
   { id: 'bundles', nameId: 'Bundling', nameEn: 'Bundles' }
 ];
 
-const openModal = (product) => openProduct(product);
+const localSearchQuery = ref(searchQuery.value);
+const handleLocalSearch = () => {
+  searchQuery.value = localSearchQuery.value;
+};
+const clearLocalSearch = () => {
+  localSearchQuery.value = '';
+  searchQuery.value = '';
+};
+
+watch(searchQuery, (q) => {
+  if (q !== localSearchQuery.value) {
+    localSearchQuery.value = q;
+  }
+});
 
 const handleCardClick = (product) => openModal(product);
 
@@ -482,25 +518,89 @@ const t = (key) => {
   transform: translateY(-1px);
 }
 
-/* Controls: filter-bar (same underline style as homepage) */
+/* Controls: search and filters */
 .shop-controls {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
+  align-items: center;
   width: 100%;
   margin-bottom: 1.5rem;
   padding-bottom: 1.25rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1); /* divider between filtering and cards */
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   position: sticky;
   top: 76px;
   z-index: 500;
   background-color: #fff;
+  gap: 2rem;
 }
 
 .category-filters {
   display: flex;
-  justify-content: center;
-  gap: 2.5rem;
+  justify-content: flex-start;
+  gap: 2rem;
   flex-wrap: wrap;
+}
+
+.shop-page-search {
+  flex: 0 0 320px;
+}
+
+.shop-search-bar {
+  display: flex;
+  align-items: center;
+  background-color: #f9f9f9;
+  border: 1px solid rgba(47, 78, 62, 0.15);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  gap: 0.5rem;
+  transition: border-color 0.2s ease;
+}
+
+.shop-search-bar:focus-within {
+  border-color: var(--color-mocca-dark);
+}
+
+.search-icon {
+  color: var(--color-mocca-muted);
+  flex-shrink: 0;
+}
+
+.shop-search-input {
+  border: none;
+  background: none;
+  outline: none;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--color-mocca-dark);
+  width: 100%;
+}
+
+.clear-search-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-mocca-muted);
+  display: flex;
+  align-items: center;
+  padding: 2px;
+}
+
+.clear-search-btn:hover {
+  color: var(--color-mocca-dark);
+}
+
+@media (max-width: 1024px) {
+  .shop-controls {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 1rem;
+  }
+  .shop-page-search {
+    flex: 1 1 100%;
+  }
+  .category-filters {
+    justify-content: center;
+  }
 }
 
 .filter-btn {

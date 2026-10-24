@@ -19,8 +19,8 @@
 
       <!-- Right: Action Icons -->
       <div class="header-actions">
-        <!-- Search Icon (global — same icon/dropdown on home and shop, hidden on mobile) -->
-        <button class="action-btn mobile-hidden" @click="toggleSearch" :class="{ 'search-active': isSearchOpen }" aria-label="Search">
+        <!-- Search Icon (hidden on product page) -->
+        <button v-if="currentPage !== 'product'" class="action-btn mobile-hidden" @click="handleSearchClick" :class="{ 'search-active': isSearchOpen }" aria-label="Search">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="11" cy="11" r="8"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
@@ -402,6 +402,15 @@ const toggleSearch = () => {
     nextTick(() => {
       if (searchInput.value) searchInput.value.focus();
     });
+  }
+};
+
+const handleSearchClick = () => {
+  if (currentPage.value === 'home') {
+    toggleSearch();
+  } else {
+    currentPage.value = 'shop';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 };
 
