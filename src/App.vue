@@ -1,5 +1,7 @@
 <template>
   <div class="site-container">
+    <LoadingScreen @done="siteReady = true" />
+    <ProductPopup v-if="siteReady" />
     <Header v-if="currentPage !== 'login'" />
     <main :class="{ 'no-padding': currentPage === 'login' }">
       <Transition name="fade" mode="out-in">
@@ -56,6 +58,8 @@
 </template>
 
 <script setup>
+import LoadingScreen from './components/LoadingScreen.vue'
+import ProductPopup from './components/ProductPopup.vue'
 import Header from './components/Header.vue'
 import HeroSection from './components/sections/HeroSection.vue'
 import FeaturesSection from './components/sections/FeaturesSection.vue'
@@ -79,7 +83,9 @@ import BottomCartBar from './components/BottomCartBar.vue'
 import MobileNavbar from './components/MobileNavbar.vue'
 import ProductModal from './components/ProductModal.vue'
 import { currentPage, totalItems, currentTheme, selectedProduct, productReturnPage } from './store/cart.js'
-import { watch } from 'vue'
+import { watch, ref } from 'vue'
+
+const siteReady = ref(false);
 
 watch(currentTheme, (theme) => {
   if (theme === 'cream') {

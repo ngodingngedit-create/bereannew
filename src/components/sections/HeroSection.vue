@@ -41,12 +41,12 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 
-const slides = [
-  { image: '/slider/slider1.png' },
-  { image: '/slider/slider2.webp' },
-  { image: '/slider/slider3.webp' },
-  { image: '/slider/slider4.webp' },
-];
+const sliderBase = import.meta.env.VITE_SLIDER_API_URL || 'https://api.kolektix.my.id';
+const SLIDER_URL = `${sliderBase}/api/myslide/e5e0a35f9a`;
+
+const SLIDE_COUNT = 3;
+
+const slides = ref([]);
 
 const currentSlide = ref(0);
 
@@ -62,30 +62,45 @@ const setSlide = (index) => {
 };
 
 const nextSlide = () => {
-  currentSlide.value = (currentSlide.value + 1) % slides.length;
+  if (!slides.value.length) return;
+  currentSlide.value = (currentSlide.value + 1) % slides.value.length;
   restartAutoplay();
 };
 
 const prevSlide = () => {
-  currentSlide.value = (currentSlide.value - 1 + slides.length) % slides.length;
+  if (!slides.value.length) return;
+  currentSlide.value = (currentSlide.value - 1 + slides.value.length) % slides.value.length;
   restartAutoplay();
 };
 
 const handleSlideClick = (index) => {
-  if (index === currentSlide.value) return;
-  setSlide(index);
+  if (didSwipe) {
+    didSwipe = false;
+    return;
+  }
+  if (index !== currentSlide.value) {
+    setSlide(index);
+    return;
+  }
+  const link = slides.value[index]?.link;
+  if (link) window.open(link, '_blank', 'noopener');
 };
 
 // Touch support for swipe
 let touchStartX = 0;
+let touchStartY = 0;
+let didSwipe = false;
 const handleTouchStart = (e) => {
   touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+  didSwipe = false;
 };
 const handleTouchEnd = (e) => {
-  const touchEndX = e.changedTouches[0].clientX;
-  const diff = touchStartX - touchEndX;
-  if (Math.abs(diff) > 50) {
-    if (diff > 0) {
+  const diffX = touchStartX - e.changedTouches[0].clientX;
+  const diffY = touchStartY - e.changedTouches[0].clientY;
+  if (Math.abs(diffX) > 50 && Math.abs(diffX) > Math.abs(diffY)) {
+    didSwipe = true;
+    if (diffX > 0) {
       nextSlide();
     } else {
       prevSlide();
@@ -94,19 +109,34 @@ const handleTouchEnd = (e) => {
 };
 
 const getSlidePositionClass = (index) => {
-  const total = slides.length;
-  const diff = (index - currentSlide.value + total) % total;
+  const total = slides.value.length;
+  let diff = (index - currentSlide.value + total) % total;
 
   if (diff === 0) return 'is-active';
-  if (diff === 1 || diff === -(total - 1)) return 'is-next-1';
-  if (diff === 2 || diff === -(total - 2)) return 'is-next-2';
-  if (diff === total - 1 || diff === -1) return 'is-prev-1';
-  if (diff === total - 2 || diff === -2) return 'is-prev-2';
+  if (diff > total / 2) diff -= total;
+
+  if (diff === 1) return 'is-next-1';
+  if (diff === 2) return 'is-next-2';
+  if (diff === -1) return 'is-prev-1';
+  if (diff === -2) return 'is-prev-2';
   return 'is-hidden';
 };
 
-onMounted(() => {
+onMounted(async () => {
   restartAutoplay();
+  try {
+    const res = await fetch(SLIDER_URL);
+    const json = await res.json();
+    const items = (json?.data || [])
+      .filter((s) => s?.image_url)
+      .map((s) => ({ image: s.image_url, link: s.link }));
+    if (!items.length) return;
+    slides.value = Array.from({ length: SLIDE_COUNT }, (_, i) => items[i % items.length]);
+    currentSlide.value = 0;
+    restartAutoplay();
+  } catch (e) {
+    // API unavailable: no fallback slides
+  }
 });
 
 onUnmounted(() => {
@@ -144,9 +174,9 @@ onUnmounted(() => {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 65vw;
-  max-width: 960px;
-  aspect-ratio: 16 / 5.4;
+  width: 84vw;
+  max-width: 1360px;
+  aspect-ratio: 1080 / 280;
   transform-origin: center center;
   transition: transform 500ms cubic-bezier(0.25, 1, 0.5, 1),
               opacity 500ms cubic-bezier(0.25, 1, 0.5, 1),
@@ -158,10 +188,6 @@ onUnmounted(() => {
 .slide-card {
   width: 100%;
   height: 100%;
-  border-radius: 18px;
-  overflow: hidden;
-  background: #fff;
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.06);
   transition: transform 500ms cubic-bezier(0.25, 1, 0.5, 1);
 }
 
@@ -169,7 +195,8 @@ onUnmounted(() => {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  border-radius: 10px;
   user-select: none;
 }
 
@@ -313,24 +340,25 @@ onUnmounted(() => {
 
 @media (max-width: 768px) {
   .hero-section {
-    padding: 0.6rem 0 0.9rem;
+    padding: 0;
   }
 
   .slider-container {
-    padding: 0 0.6rem;
+    padding: 0;
+    touch-action: pan-y;
   }
 
   .slider-viewport {
-    height: clamp(150px, 44vw, 220px);
+    height: auto;
+    aspect-ratio: 1080 / 280;
   }
 
   .carousel-item {
-    width: 90vw;
+    width: 108vw;
   }
 
-  .slide-card {
-    border-radius: 10px;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
+  .slide-img {
+    border-radius: 0;
   }
 
   .carousel-item.is-prev-1 {
@@ -350,25 +378,29 @@ onUnmounted(() => {
   }
 
   .arrow {
-    width: 40px;
-    height: 40px;
-  }
-
-  .arrow svg {
-    width: 18px;
-    height: 18px;
-  }
-
-  .arrow-prev {
-    left: 0.5rem;
-  }
-
-  .arrow-next {
-    right: 0.5rem;
+    display: none;
   }
 
   .slide-dots {
-    margin-top: 0.75rem;
+    position: absolute;
+    left: 50%;
+    bottom: 10px;
+    z-index: 10;
+    margin-top: 0;
+    gap: 5px;
+    transform: translateX(-50%);
+  }
+
+  .dot {
+    width: 6px;
+    height: 6px;
+    background-color: rgba(255, 255, 255, 0.55);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  }
+
+  .dot.active {
+    width: 15px;
+    background-color: #fff;
   }
 }
 
